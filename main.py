@@ -11,14 +11,7 @@ from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import json
 from duckduckgo_search import DDGS
 import time
-# --- DEBUGGING START ---
-print("------------------------------------------------")
-print("DEBUG CHECK: Keys mili ya nahi?")
-print(f"GOOGLE_API_KEY Found: {'Yes' if os.environ.get('GOOGLE_API_KEY') else 'NO'}")
-print(f"OPENAI_API_KEY Found: {'Yes' if os.environ.get('OPENAI_API_KEY') else 'NO'}")
-print(f"FIREBASE_CREDENTIALS Found: {'Yes' if os.environ.get('FIREBASE_CREDENTIALS') else 'NO'}")
-print("------------------------------------------------")
-# --- DEBUGGING END ---
+
 # --- CONFIGURATION ---
 KEYWORD_LINKS = {
     "Desi": "/category/desi",
@@ -42,13 +35,15 @@ OPENROUTER_MODELS = [
     "huggingfaceh4/zephyr-7b-beta:free"
 ]
 
+# FIX: Using 'OPENAI_API_KEY' to match GitHub Secret
 client = OpenAI(
-    api_key=os.environ.get("OPENROUTER_API_KEY"),
+    api_key=os.environ.get("OPENAI_API_KEY"),
     base_url="https://openrouter.ai/api/v1",
 )
 
 # --- 2. GOOGLE GEMINI SETUP (Backup) ---
-genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+# FIX: Using 'GOOGLE_API_KEY' to match GitHub Secret
+genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
 
 safety_settings = {
     HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
@@ -57,6 +52,7 @@ safety_settings = {
     HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
 }
 
+# FIX: Model name corrected (removed 'models/')
 gemini_model = genai.GenerativeModel(
     model_name="gemini-1.5-flash",
     safety_settings=safety_settings
@@ -88,7 +84,7 @@ def create_model_button(star_name, image_url):
         </p>
         <a href="{model_url}" target="_blank" 
            style="background:#e50914; color:white; font-size:18px; font-weight:bold; padding:12px 30px; text-decoration:none; border-radius:5px; display:inline-block; box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);">
-           ▶ Watch {star_name} All Videos
+            ▶ Watch {star_name} All Videos
         </a>
     </div>
     """
@@ -243,4 +239,3 @@ if __name__ == "__main__":
     post_biography()
     time.sleep(5)
     post_article()
-
