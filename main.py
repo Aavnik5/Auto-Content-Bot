@@ -319,18 +319,26 @@ def post_biography():
 def post_article():
     try:
         search_terms = [
-            "onlyfans model private video leaked twitter",
-            "top onlyfans creator mega leak viral",
-            "famous adult star private tape scandal",
-            "western influencer sex tape leaked reddit",
-            "twitch streamer accidental nudity clip viral",
-            "instagram model private mms leaked telegram",
-            "youtuber private video exposed twitter",
-            "streamer wardrobe malfunction viral clip",
-            "porn star real life controversy news",
-            "adult actress hacked private photos scandal",
-            "famous pornstar retirement scandal news",
             "avn award winner leaked private video",
+            "celebrity sex tape leak 2025",
+            "hollywood actress deepfake controversy news",
+            "leaked snapchat premium video viral",
+            "top 10 hottest pornstars 2025 ranked",
+            "best adult actresses of 2025 list",
+            "top 10 most popular adult stars 2025",
+            "best new pornstars debut 2025",
+            "best adult movies 2025 reviews",
+            "AVN award winners 2025 full list",
+            "XBIZ award winning scenes 2025",
+            "top rated adult films 2025",
+            "best onlyfans creators leaked videos viral",
+            "top trending onlyfans leaks 2025",
+            "most subscribed onlyfans models leaked",
+            "viral onlyfans sex tapes reddit trend",
+            "most viewed porn videos 2025",
+            "viral adult scenes trending twitter",
+            "leaked private tapes of famous stars 2025",
+            "top 5 controversial adult scandals 2025"
         ]
         query = random.choice(search_terms)
         
@@ -391,4 +399,5 @@ if __name__ == "__main__":
     post_biography()
     time.sleep(5)
     post_article()
+
 
