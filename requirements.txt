@@ -1,5 +1,6 @@
 firebase-admin
 openai
+google-generativeai
 requests
 beautifulsoup4
-duckduckgo-search
+ddgs
