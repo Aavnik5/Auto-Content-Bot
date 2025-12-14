@@ -318,7 +318,7 @@ def post_biography():
 
 def post_article():
     try:
-      search_terms = [
+        search_terms = [
             "onlyfans model private video leaked twitter",
             "top onlyfans creator mega leak viral",
             "famous adult star private tape scandal",
@@ -333,7 +333,7 @@ def post_article():
             "avn award winner leaked private video",
             "celebrity sex tape leak 2025",
             "hollywood actress deepfake controversy news",
-            "leaked snapchat premium video viral"
+            "leaked snapchat premium video viral",
             "top 10 hottest pornstars 2025 ranked",
             "best adult actresses of 2025 list",
             "top 10 most popular adult stars 2025",
@@ -410,5 +410,3 @@ if __name__ == "__main__":
     post_biography()
     time.sleep(5)
     post_article()
-
-
