@@ -3,4 +3,4 @@ openai
 google-generativeai
 requests
 beautifulsoup4
-ddgs
+duckduckgo-search
