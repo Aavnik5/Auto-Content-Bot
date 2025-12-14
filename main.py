@@ -26,8 +26,7 @@ FALLBACK_IMAGES = [
     "https://freepornx.site/images/default2.jpg"
 ]
 
-# --- 1. OPENROUTER SETUP (Updated List) ---
-# Removed broken/404 models. Kept only reliable free ones.
+# --- 1. OPENROUTER SETUP ---
 OPENROUTER_MODELS = [
     "google/gemini-2.0-flash-exp:free",
     "meta-llama/llama-3.2-3b-instruct:free",
@@ -40,7 +39,7 @@ client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
 )
 
-# --- 2. GOOGLE GEMINI SETUP (Backup) ---
+# --- 2. GOOGLE GEMINI SETUP ---
 genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
 
 safety_settings = {
@@ -50,9 +49,9 @@ safety_settings = {
     HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
 }
 
-# FIX: Changed model name to a more specific version to avoid 404 errors
+# FIX: Using the most stable model name
 gemini_model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash-latest", 
+    model_name="gemini-1.5-flash", 
     safety_settings=safety_settings
 )
 
@@ -91,7 +90,6 @@ def create_model_button(star_name, image_url):
 def get_image_from_ddg(query):
     print(f"🔍 Searching image for: {query}...")
     try:
-        # Added timeout to prevent hanging
         with DDGS(timeout=20) as ddgs:
             results = list(ddgs.images(query, max_results=1, safesearch='off'))
             if results:
@@ -124,9 +122,8 @@ def get_ai_content(prompt):
                 print("✅ OpenRouter Success!")
                 return content
         except Exception as e:
-            # Short error msg to keep logs clean
             print(f"   ⚠️ Failed ({model_name})") 
-            time.sleep(1) # Small pause
+            time.sleep(1)
             continue
 
     # PLAN B: Try Google Gemini Direct (Backup)
@@ -207,31 +204,52 @@ def post_article():
         print(f"🔍 Searching Trending Topic for: {query}...")
         
         topic = None
-        with DDGS(timeout=20) as ddgs:
-            results = list(ddgs.text(query, max_results=1))
-            if results:
-                topic = results[0]['title']
-                print(f"🔥 Found Trending Topic: {topic}")
+        
+        # 1. Try fetching Live News
+        try:
+            with DDGS(timeout=20) as ddgs:
+                results = list(ddgs.text(query, region='in-en', max_results=1)) 
+                if results:
+                    topic = results[0]['title']
+                    print(f"🔥 Found Trending Topic: {topic}")
+        except Exception as e:
+            print(f"⚠️ Search failed: {e}")
 
+        # 2. Backup Plan (Agar search se topic nahi mila)
+        if not topic:
+            print("⚠️ Koi Trending News nahi mili. Using Backup Topic.")
+            backup_topics = [
+                "Why Leaked MMS Videos Go Viral on Social Media?",
+                "Dark Side of Internet: How Private Videos Get Leaked",
+                "Top 5 Controversial Bollywood Moments of This Year",
+                "Safety Tips: How to Protect Your Private Videos from Leaks"
+            ]
+            topic = random.choice(backup_topics)
+            print(f"✅ Selected Backup Topic: {topic}")
+
+        # 3. Content Generation
         if topic:
             img = get_image_from_ddg(topic)
             
             prompt = f"""
-            Write a 800-word juicy news article about "{topic}".
-            Focus on: Viral Video, Leaked MMS, Social Media Reactions.
+            Write a 800-word sensational article about "{topic}".
+            Focus on: Viral trends, public reaction, and controversy.
             Output ONLY HTML code.
             Structure:
-            - <h2>Breaking News</h2>
-            - <h2>The Viral Clip</h2>
-            - <h2>Fan Reactions</h2>
+            - <h2>The Story</h2>
+            - <h2>Why It Went Viral</h2>
+            - <h2>Public Reactions</h2>
             - <h2>Conclusion</h2>
             """
             content = get_ai_content(prompt)
             
             if content:
                 content = inject_internal_links(content)
-                slug = topic.lower().replace(" ", "-").replace(":", "")[:60]
+                slug = topic.lower().replace(" ", "-").replace(":", "").replace("?", "")[:60]
                 save_to_firebase(topic, content, slug, "News", img)
+            else:
+                print("❌ Content generation failed.")
+
     except Exception as e:
         print(f"Article Error: {e}")
 
