@@ -23,19 +23,16 @@ KEYWORD_LINKS = {
 
 # --- GUARANTEED WORKING IMAGES (Direct Unsplash Links) ---
 BIO_IMAGES_LIST = [
-    "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?q=80&w=800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?q=80&w=800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=800&auto=format&fit=crop"
+
+    
+
+    "https://ih1.redbubble.net/image.5328373552.3326/st,small,507x507-pad,600x600,f8f8f8.u3.webp",
+
 ]
 
 NEWS_IMAGES_LIST = [
-    "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?q=80&w=800&auto=format&fit=crop", # TV News
-    "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=800&auto=format&fit=crop", # Breaking News
-    "https://images.unsplash.com/photo-1529070538774-1843cb3265df?q=80&w=800&auto=format&fit=crop", # Viral Social Media
-    "https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?q=80&w=800&auto=format&fit=crop", # Analytics
-    "https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?q=80&w=800&auto=format&fit=crop"  # Charts
+    "https://www.shutterstock.com/image-vector/newspaper-icon-logo-isolated-sign-600nw-1896642682.jpg", # TV News
+   
 ]
 
 # --- 1. OPENROUTER SETUP ---
@@ -348,3 +345,4 @@ if __name__ == "__main__":
     post_biography()
     time.sleep(5)
     post_article()
+
