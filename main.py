@@ -11,7 +11,14 @@ from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import json
 from duckduckgo_search import DDGS
 import time
-
+# --- DEBUGGING START ---
+print("------------------------------------------------")
+print("DEBUG CHECK: Keys mili ya nahi?")
+print(f"GOOGLE_API_KEY Found: {'Yes' if os.environ.get('GOOGLE_API_KEY') else 'NO'}")
+print(f"OPENAI_API_KEY Found: {'Yes' if os.environ.get('OPENAI_API_KEY') else 'NO'}")
+print(f"FIREBASE_CREDENTIALS Found: {'Yes' if os.environ.get('FIREBASE_CREDENTIALS') else 'NO'}")
+print("------------------------------------------------")
+# --- DEBUGGING END ---
 # --- CONFIGURATION ---
 KEYWORD_LINKS = {
     "Desi": "/category/desi",
@@ -236,3 +243,4 @@ if __name__ == "__main__":
     post_biography()
     time.sleep(5)
     post_article()
+
