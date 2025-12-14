@@ -19,19 +19,9 @@ KEYWORD_LINKS = {
     "Video": "/index.html"
 }
 
-# --- RELIABLE FALLBACK IMAGES (Unsplash - Always Working) ---
-BIO_FALLBACKS = [
-    "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=600&auto=format&fit=crop", # Generic Model 1
-    "https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=600&auto=format&fit=crop", # Generic Model 2
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop", # Generic Model 3
-    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=600&auto=format&fit=crop"  # Generic Model 4
-]
-
-NEWS_FALLBACKS = [
-    "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=600&auto=format&fit=crop", # Breaking News
-    "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?q=80&w=600&auto=format&fit=crop", # News TV
-    "https://images.unsplash.com/photo-1529070538774-1843cb3265df?q=80&w=600&auto=format&fit=crop", # Social Media Viral
-    "https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?q=80&w=600&auto=format&fit=crop"  # Analytics/Trend
+FALLBACK_IMAGES = [
+    "https://freepornx.site/images/default1.jpg",
+    "https://freepornx.site/images/default2.jpg"
 ]
 
 # --- 1. OPENROUTER SETUP ---
@@ -79,24 +69,16 @@ def create_model_button(star_name, image_url):
     """
     return html_code
 
-def get_image_from_ddg(query, image_type="Bio"):
+def get_image_from_ddg(query):
     print(f"🔍 Searching image for: {query}...")
     try:
-        # Short timeout to fail fast if blocked
-        with DDGS(timeout=10) as ddgs:
+        with DDGS(timeout=20) as ddgs:
             results = list(ddgs.images(query, max_results=1, safesearch='off'))
             if results:
-                print("✅ DDG Image Found")
                 return results[0]['image']
     except Exception as e:
-        print(f"⚠️ DDG Image Search Failed: {e}")
-    
-    # --- SAFETY NET: Always return a working image ---
-    print(f"⚠️ Using {image_type} Fallback Image")
-    if image_type == "Bio":
-        return random.choice(BIO_FALLBACKS)
-    else:
-        return random.choice(NEWS_FALLBACKS)
+        print(f"❌ Image Error (Using Fallback): {e}")
+    return random.choice(FALLBACK_IMAGES)
 
 def inject_internal_links(html_content):
     modified_content = html_content
@@ -166,6 +148,14 @@ def get_fallback_content(topic_type, title):
         <p>The rise of {title} in the industry has been meteoric. Her debut scene grabbed attention immediately, showcasing her natural talent and screen presence. Directors and producers were quick to notice her potential, leading to contracts with major studios.</p>
         <p>Over the years, she has worked with some of the biggest names in the business. Her versatility allows her to perform in various genres, making her a fan favorite. Whether it's a glamorous photoshoot or a high-production video, {title} gives her 100%.</p>
         <p>Social media has also played a huge role in her success. With millions of followers across platforms like Instagram and Twitter, she keeps her fans engaged with behind-the-scenes content and updates.</p>
+
+        <h2>Why She is So Popular</h2>
+        <p>There are several reasons why {title} remains a top trend:</p>
+        <ul>
+            <li><strong>Consistency:</strong> She regularly releases high-quality content.</li>
+            <li><strong>Engagement:</strong> She interacts with her fanbase frequently.</li>
+            <li><strong>Looks:</strong> Her distinct style and fitness regime keep her looking her best.</li>
+        </ul>
 
         <h2>Conclusion</h2>
         <p>{title} is undoubtedly a star to watch out for. Her journey from a newcomer to a sensation is inspiring. As she continues to evolve, fans can expect even more exciting projects from her in the future. Don't forget to check out her exclusive video collection linked below.</p>
@@ -268,10 +258,10 @@ def post_biography():
         star = random.choice(stars)
         print(f"⭐ Processing Bio: {star}")
         
-        # Explicitly asking for "Bio" type image
-        star_image = get_image_from_ddg(f"{star} model wallpaper", image_type="Bio")
+        star_image = get_image_from_ddg(f"{star} model wallpaper")
         model_button = create_model_button(star, star_image)
 
+        # Improved Prompt for AI
         prompt = f"""
         Write a comprehensive HTML biography (at least 800 words) for the adult star "{star}".
         
@@ -323,11 +313,7 @@ def post_article():
             topic = random.choice(backup_topics)
 
         if topic:
-            # Explicitly asking for "News" type image, bypassing topic-specific search if needed
-            # But let's try a generic search first which is safer
-            generic_search = "Social Media Viral News"
-            img = get_image_from_ddg(generic_search, image_type="News")
-            
+            img = get_image_from_ddg(topic)
             prompt = f"""
             Write a sensational 800-word news article about "{topic}".
             Output strictly valid HTML.
