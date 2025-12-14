@@ -1,0 +1,28 @@
+name: Daily Auto Poster
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # Har 6 ghante mein chalega
+  workflow_dispatch:      # Button se chalane ke liye
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11' # <--- Ye maine 3.11 kar diya hai (Sabse Zaruri)
+
+      - name: Install Libraries
+        run: pip install -r requirements.txt
+
+      - name: Run Auto Poster
+        env:
+          FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python main.py
