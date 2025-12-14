@@ -26,5 +26,8 @@ jobs:
       - name: Run script
         env:
           # 👇 YE SABSE IMPORTANT LINE HAI
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }} 
+   
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}  # 👈 Ye line add karni hai
+  
         run: python main.py
