@@ -21,9 +21,28 @@ KEYWORD_LINKS = {
     "Scandal": "/tags/scandal"
 }
 
+# --- GUARANTEED BACKUP TOPICS (Agar search fail ho jaye) ---
+BACKUP_NEWS_TITLES = [
+    "Viral Scandal: Famous Influencer Private Video Leaked on Telegram",
+    "College Girl MMS Goes Viral: Social Media in Shock",
+    "OnlyFans Model Account Hacked: Full Folder Leaked Online",
+    "Desi Bhabhi Viral Video: WhatsApp Groups Flooded with Link",
+    "Big Boss Contestant MMS Scandal: Truth Behind the Viral Clip",
+    "Bathroom Video Leak: New Scandal Shakes the Internet",
+    "Gym Trainer and Student Private Video Leaked on Twitter",
+    "TikTok Star Oops Moment: Live Stream Goes Wrong",
+    "Telegram Group 'Desi Viral' Exposed: Thousands of Videos Leaked",
+    "Hotel Room Spy Cam Scandal: Couple Video Goes Viral",
+    "Bollywood Actress Deepfake vs Real Video: Internet Confused",
+    "Instagram Model Private DM Video Leaked by Ex-Boyfriend",
+    "Hostel Girl MMS Viral: Police Investigating the Source",
+    "Reality Show Star Private Tape Leaked on Reddit",
+    "Famous YouTuber Private Call Recording and Video Leaked"
+]
+
 # --- GUARANTEED WORKING IMAGES ---
 BIO_IMAGES_LIST = [
-     "https://ih1.redbubble.net/image.5328373552.3326/st,small,507x507-pad,600x600,f8f8f8.u3.webp",
+    "https://i.ebayimg.com/images/g/MKgAAOSwsLtVe5GY/s-l400.jpg",
 
 ]
 
@@ -31,6 +50,7 @@ NEWS_IMAGES_LIST = [
     "https://www.shutterstock.com/image-vector/newspaper-icon-logo-isolated-sign-600nw-1896642682.jpg", # TV News
    
 ]
+
 
 # --- 1. OPENROUTER SETUP ---
 OPENROUTER_MODELS = [
@@ -94,6 +114,20 @@ def get_guaranteed_image(query, type="Bio"):
     else:
         return random.choice(NEWS_IMAGES_LIST)
 
+def get_star_stats(star_name):
+    query = f"{star_name} height weight bra size measurements wiki bio"
+    print(f"📊 Searching Stats for: {star_name}...")
+    try:
+        with DDGS(timeout=10) as ddgs:
+            results = list(ddgs.text(query, max_results=3))
+            if results:
+                stats_data = "\n".join([r['body'] for r in results])
+                print("✅ Stats Found!")
+                return stats_data
+    except Exception as e:
+        print(f"⚠️ Stats Search Failed: {e}")
+    return "Data not found online. Estimate based on typical model stats."
+
 def inject_internal_links(html_content):
     modified_content = html_content
     for word, link in KEYWORD_LINKS.items():
@@ -126,70 +160,36 @@ def get_fallback_content(topic_type, title):
     if topic_type == "Bio":
         return f"""
         <h2>Introduction to the Star</h2>
-        <p>{title} has taken the internet by storm. Known for her captivating performances and stunning looks, she has carved a niche for herself in the adult entertainment industry. From her early beginnings to becoming a top-searched star, her journey is nothing short of fascinating. Fans around the world are always eager to know more about her life, career, and personal details. Her presence on social media has further amplified her reach, making her a global sensation in a very short span of time.</p>
-        <p>In this detailed biography, we will explore everything you need to know about {title}, including her age, height, figure, family background, and net worth.</p>
+        <p>{title} has taken the internet by storm. Known for her captivating performances...</p>
         
         <h2>Personal Details</h2>
-        <table style="width:100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #333;">
-            <tr style="background-color: #222; color: #fff;">
-                <th style="padding: 10px; border: 1px solid #444;">Attribute</th>
-                <th style="padding: 10px; border: 1px solid #444;">Details</th>
-            </tr>
-            <tr><td style="padding:10px; border:1px solid #444;"><strong>Name</strong></td><td style="padding:10px; border:1px solid #444;">{title}</td></tr>
-            <tr><td style="padding:10px; border:1px solid #444;"><strong>Profession</strong></td><td style="padding:10px; border:1px solid #444;">Adult Actress, Model</td></tr>
-            <tr><td style="padding:10px; border:1px solid #444;"><strong>Date of Birth</strong></td><td style="padding:10px; border:1px solid #444;">1990s (Approx)</td></tr>
-            <tr><td style="padding:10px; border:1px solid #444;"><strong>Birth Place</strong></td><td style="padding:10px; border:1px solid #444;">United States / Europe</td></tr>
-            <tr><td style="padding:10px; border:1px solid #444;"><strong>Nationality</strong></td><td style="padding:10px; border:1px solid #444;">International</td></tr>
-            <tr><td style="padding:10px; border:1px solid #444;"><strong>Debut Year</strong></td><td style="padding:10px; border:1px solid #444;">2015-2020</td></tr>
+        <table border="1" style="width:100%; border-collapse: collapse;">
+            <tr><td><strong>Name</strong></td><td>{title}</td></tr>
+            <tr><td><strong>Profession</strong></td><td>Adult Actress</td></tr>
         </table>
-
+        
         <h3>Physical Appearance</h3>
-        <table style="width:100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #333;">
-            <tr><td style="padding:10px; border:1px solid #444;"><strong>Height</strong></td><td style="padding:10px; border:1px solid #444;">5 ft 5 in (Approx)</td></tr>
-            <tr><td style="padding:10px; border:1px solid #444;"><strong>Weight</strong></td><td style="padding:10px; border:1px solid #444;">55 kg</td></tr>
-            <tr><td style="padding:10px; border:1px solid #444;"><strong>Body Measurements</strong></td><td style="padding:10px; border:1px solid #444;">34-24-36</td></tr>
-            <tr><td style="padding:10px; border:1px solid #444;"><strong>Bra Size</strong></td><td style="padding:10px; border:1px solid #444;">34C</td></tr>
-            <tr><td style="padding:10px; border:1px solid #444;"><strong>Waist Size</strong></td><td style="padding:10px; border:1px solid #444;">24 inches</td></tr>
-            <tr><td style="padding:10px; border:1px solid #444;"><strong>Hip Size</strong></td><td style="padding:10px; border:1px solid #444;">36 inches</td></tr>
-            <tr><td style="padding:10px; border:1px solid #444;"><strong>Shoe Size</strong></td><td style="padding:10px; border:1px solid #444;">7 (US)</td></tr>
-            <tr><td style="padding:10px; border:1px solid #444;"><strong>Dress Size</strong></td><td style="padding:10px; border:1px solid #444;">4 (US)</td></tr>
-            <tr><td style="padding:10px; border:1px solid #444;"><strong>Hair Color</strong></td><td style="padding:10px; border:1px solid #444;">Brown/Black</td></tr>
-            <tr><td style="padding:10px; border:1px solid #444;"><strong>Eye Color</strong></td><td style="padding:10px; border:1px solid #444;">Brown</td></tr>
+        <table border="1" style="width:100%; border-collapse: collapse;">
+            <tr><td><strong>Height</strong></td><td>5 ft 5 in</td></tr>
+            <tr><td><strong>Weight</strong></td><td>55 kg</td></tr>
         </table>
-
-        <h2>Early Life & Background</h2>
-        <p>{title} was born with a passion for the camera. While specific details about her early childhood are kept private to maintain her privacy, it is known that she always aspired to be in the limelight. Growing up, she was active in various extracurricular activities which helped build her confidence.</p>
-
-        <h2>Career Journey</h2>
-        <p>The rise of {title} in the industry has been meteoric. Her debut scene grabbed attention immediately, showcasing her natural talent and screen presence. Directors and producers were quick to notice her potential, leading to contracts with major studios. Unlike many others who struggle to find their footing, she made an impact right from the start.</p>
 
         <h2>Conclusion</h2>
-        <p>{title} is undoubtedly a star to watch out for. Her journey from a newcomer to a sensation is inspiring for many. As she continues to evolve, fans can expect even more exciting projects from her in the future. She has proven that with talent and hard work, one can achieve great heights in this competitive industry.</p>
-        <p>Don't forget to check out her exclusive video collection linked below to see her best performances.</p>
+        <p>Don't forget to check out her exclusive video collection linked below.</p>
         """
-    else: # News Fallback
+    else: 
         return f"""
-        <h2>Breaking News: The Viral Scandal of {title}</h2>
+        <h2>Breaking News: {title}</h2>
         <p>The internet is buzzing today with the latest viral sensation involving <strong>{title}</strong>. Private videos often leak on platforms like Telegram, Reddit, and Twitter, causing a massive storm on social media. This recent incident has once again highlighted the issues of digital privacy and internet security.</p>
         
         <h2>The Viral Clip: What Exactly Happened?</h2>
-        <p>It all started when a video clip surfaced online late last night. Within hours, the clip was shared thousands of times across various social media groups and channels. The nature of the content has sparked intense debate, with many users searching for the original link. While some claim it to be a deepfake or a publicity stunt, others believe it to be a genuine leak from a private source.</p>
-        <p>The video features {title} in a candid moment, which was allegedly not meant for public viewing. Such leaks have become increasingly common in the digital age, where hackers and malicious entities target influencers and celebrities.</p>
-
-        <h2>Public Reactions and Social Media Storm</h2>
-        <p>As soon as the news broke, reactions started pouring in from all corners of the internet. Here is how the public is reacting:</p>
-        <ul>
-            <li><strong>Fans:</strong> Many loyal fans are shocked and are supporting {title}, asking for privacy and respect during this difficult time.</li>
-            <li><strong>Trolls:</strong> Unfortunately, internet trolls are having a field day, sharing memes and making inappropriate comments.</li>
-            <li><strong>Search Trends:</strong> The keyword "{title} leaked video" has become a top search query on Google and Twitter trends.</li>
-        </ul>
+        <p>It all started when a video clip surfaced online late last night. Within hours, the clip was shared thousands of times across various social media groups and channels. The nature of the content has sparked intense debate, with many users searching for the original link.</p>
 
         <h2>Analysis: The Dark Side of the Web</h2>
-        <p>This incident sheds light on the dark side of the internet. Private content, once leaked, is almost impossible to remove completely. Platforms like Telegram play a major role in the dissemination of such content, often bypassing strict moderation rules found on other social networks. It serves as a reminder for everyone to be extra cautious about their digital footprint.</p>
+        <p>This incident sheds light on the dark side of the internet. Private content, once leaked, is almost impossible to remove completely.</p>
 
         <h2>Conclusion</h2>
-        <p>As the story develops, more details are expected to emerge regarding the source of the leak and any legal action that might be taken. We urge our readers to respect the privacy of the individuals involved and avoid sharing unverified or non-consensual content.</p>
-        <p>Stay tuned to our website for the latest updates on this viral scandal and other trending news.</p>
+        <p>As the story develops, more details are expected to emerge regarding the source of the leak.</p>
         """
 
 def get_ai_content(prompt, topic_type="Bio", title="Unknown"):
@@ -202,7 +202,7 @@ def get_ai_content(prompt, topic_type="Bio", title="Unknown"):
                     {"role": "system", "content": "You are a professional long-form content writer. Write EXTREMELY DETAILED, 2000-WORD content. Do not stop early. Use <h2> headings and <table> for stats."},
                     {"role": "user", "content": prompt}
                 ],
-                timeout=45
+                timeout=55
             )
             content = response.choices[0].message.content
             if content and len(content) > 1000:
@@ -260,55 +260,28 @@ def post_biography():
         star = random.choice(stars)
         print(f"⭐ Processing Bio: {star}")
         
+        stats_data = get_star_stats(star)
         star_image = get_guaranteed_image(f"{star} model wallpaper", type="Bio")
         model_button = create_model_button(star, star_image)
 
-        # 2000 WORDS PROMPT with PHYSICAL STATS REQUEST
         prompt = f"""
         Write a massive, 2000-WORD detailed HTML biography for the adult star "{star}".
         
-        INSTRUCTIONS FOR LENGTH:
-        - Elaborate deeply on her early life, education, and life before fame (Write 500 words just on this).
-        - Create a very long 'Career' section detailing her debut, major movies, and rise to stardom (Write 800 words on this).
-        - Discuss her social media impact, brand endorsements, and controversies (Write 500 words).
+        HERE IS REAL DATA FOUND ONLINE FOR "{star}":
+        {stats_data}
         
         REQUIRED HTML STRUCTURE:
         1. <h2>Introduction</h2>
-        2. <h2>Personal Details</h2>: A DETAILED HTML Table <table> with the following rows:
-           - Real Name (Profession Name)
-           - Profession (e.g., Pornographic Actress, Model)
-           - Date of Birth & Age (as of 2024)
-           - Birth Place
-           - Grew Up In
-           - Gender
-           - Birth Sign (Zodiac)
-           - Nationality
-           - Religion
-           - Ethnicity
-           - Current City
-           - Languages Spoken
-           - Debut Year
-           - Years Active
-           - Notable Movies (List 3-4)
-           - TV Shows (List if any)
+        2. <h2>Personal Details</h2>: A DETAILED HTML Table <table> with rows:
+           - Real Name, Profession, Date of Birth, Birth Place, Grew Up In, Nationality, Religion, Ethnicity, Current City, Debut Year, Notable Movies.
+           (Style with border="1")
         
-        3. <h2>Physical Appearance</h2>: A SECOND HTML Table <table> with the following rows:
-           - Height (Feet and Meters)
-           - Weight (lbs and kg)
-           - Bra Size
-           - Body Measurements (Chest-Waist-Hips)
-           - Breast/Bust Size
-           - Waist Size
-           - Hips Size
-           - Shoe Size
-           - Dress Size
-           - Hair Color
-           - Eye Color
-        
-        (Style both tables with border="1")
+        3. <h2>Physical Appearance</h2>: A SECOND HTML Table <table>. Use the REAL DATA provided above:
+           - Height, Weight, Bra Size, Body Measurements, Waist Size, Hip Size, Shoe Size, Dress Size, Hair Color, Eye Color.
+           (Style with border="1")
            
-        4. <h2>Early Life</h2>
-        5. <h2>Career Journey</h2>
+        4. <h2>Early Life</h2> (Write 500 words)
+        5. <h2>Career Journey</h2> (Write 800 words)
         6. <h2>Social Media & Fame</h2>
         7. <h2>Conclusion</h2>
         
@@ -326,25 +299,14 @@ def post_biography():
 
 def post_article():
     try:
-        # UPDATED SEARCH TERMS to include specific sites
-        search_terms = [
-            "site:avn.com latest news",
-            "site:pornstars.tube trending",
-            "site:redbled.com viral",
-            "site:thelordofporn.com top 10",
-            "site:erotom.com latest",
-            "site:frolicme.com blog",
-            "site:eroticatale.com stories",
-            "site:sexwithemily.com blog",
-            "site:erikalust.com news",
-            "latest viral leaked mms news",
-            "private video leaked scandal"
-        ]
+        # Search queries
+        search_terms = ["site:avn.com news", "latest leaked mms viral"]
         query = random.choice(search_terms)
         
         print(f"🔍 Searching Trending Topic for: {query}...")
         topic = None
         
+        # Try finding a topic
         try:
             with DDGS(timeout=10) as ddgs:
                 results = list(ddgs.text(query, region='in-en', max_results=1)) 
@@ -354,13 +316,11 @@ def post_article():
         except Exception:
             pass
 
+        # === CRITICAL FIX: GUARANTEED TOPIC SELECTION ===
         if not topic:
-            print("⚠️ Using Backup Topic.")
-            backup_topics = [
-                "Viral Scandal: Telegram Groups Leaking Private Videos",
-                "Dark Side of Social Media: Influencer MMS Leaked"
-            ]
-            topic = random.choice(backup_topics)
+            print("⚠️ Search failed/empty. Using GUARANTEED BACKUP TOPIC.")
+            topic = random.choice(BACKUP_NEWS_TITLES)
+            print(f"✅ Selected Backup Topic: {topic}")
 
         img = get_guaranteed_image("Breaking News Viral Scandal", type="News")
             
