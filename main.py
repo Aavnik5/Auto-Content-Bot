@@ -25,19 +25,23 @@ FALLBACK_IMAGES = [
     "https://freepornx.site/images/default2.jpg"
 ]
 
-# --- SMART MODEL LIST (Agar ek fail hua to dusra chalega) ---
+# --- IMPROVED MODEL LIST (Mix of Providers) ---
 FREE_MODELS = [
-    "google/gemini-2.0-flash-exp:free",
-    "google/gemini-2.0-flash-thinking-exp:free",
-    "meta-llama/llama-3-8b-instruct:free",
-    "microsoft/phi-3-medium-128k-instruct:free",
-    "huggingfaceh4/zephyr-7b-beta:free"
+    "google/gemini-2.0-flash-exp:free",           # Best Quality
+    "google/gemini-pro-1.5:free",                 # Google Backup
+    "meta-llama/llama-3.2-3b-instruct:free",      # Fast & Reliable
+    "qwen/qwen-2-7b-instruct:free",               # Very Stable
+    "deepseek/deepseek-r1-distill-llama-70b:free",# High Quality
+    "microsoft/phi-3-mini-128k-instruct:free"     # Good Backup
 ]
 
 # --- SETUP ---
 cred_dict = json.loads(os.environ.get("FIREBASE_CREDENTIALS"))
 cred = credentials.Certificate(cred_dict)
-firebase_admin.initialize_app(cred)
+try:
+    firebase_admin.get_app()
+except ValueError:
+    firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 client = OpenAI(
@@ -72,7 +76,7 @@ def get_star_image(star_name):
     print(f"🔍 Searching image for: {star_name}...")
     try:
         with DDGS() as ddgs:
-            queries = [f"{star_name} model photoshoot hd", f"{star_name} wallpaper"]
+            queries = [f"{star_name} model photoshoot hd", f"{star_name} wallpaper", f"{star_name} instagram"]
             for q in queries:
                 results = list(ddgs.images(q, max_results=1, safesearch='off'))
                 if results:
@@ -105,15 +109,16 @@ def get_ai_content(prompt):
             print(f"🤖 Trying AI Model: {model_name}...")
             response = client.chat.completions.create(
                 model=model_name,
-                messages=[{"role": "user", "content": prompt}]
+                messages=[{"role": "user", "content": prompt}],
+                timeout=30 # 30 sec timeout taki hang na ho
             )
             content = response.choices[0].message.content
             if content:
                 return content
         except Exception as e:
-            print(f"⚠️ {model_name} Failed: {e}")
-            time.sleep(1) # Wait 1 sec before trying next model
-            continue # Try next model
+            print(f"⚠️ {model_name} Failed. Trying next...")
+            time.sleep(2) # Thoda saas lene do bot ko
+            continue 
             
     print("❌ All AI Models failed.")
     return None
@@ -194,5 +199,6 @@ def post_article():
 
 if __name__ == "__main__":
     post_biography()
-    time.sleep(2)
+    print("⏳ Waiting 10 seconds to avoid Rate Limit...")
+    time.sleep(10) # 10 second ka break taki Google gussa na ho
     post_article()
