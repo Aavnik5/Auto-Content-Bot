@@ -1,0 +1,5 @@
+firebase-admin
+openai
+requests
+beautifulsoup4
+duckduckgo-search
