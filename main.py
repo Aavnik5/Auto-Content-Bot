@@ -100,15 +100,32 @@ def inject_internal_links(html_content):
         modified_content = pattern.sub(replacement, modified_content)
     return modified_content
 
-def generate_with_gemini(prompt, model_name):
-    """Helper function to try specific Gemini models"""
-    try:
-        model = genai.GenerativeModel(model_name=model_name, safety_settings=safety_settings)
-        response = model.generate_content(prompt)
-        return response.text
-    except Exception as e:
-        print(f"   ⚠️ Gemini Model {model_name} Failed: {e}")
-        return None
+def generate_with_gemini(prompt):
+    """Try ALL possible model names one by one until it works"""
+    # List of all possible model names to try
+    model_candidates = [
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-latest",
+        "gemini-1.5-pro",
+        "gemini-1.0-pro",
+        "gemini-pro"
+    ]
+    
+    for model_name in model_candidates:
+        try:
+            print(f"   👉 Trying Gemini Model: {model_name}...")
+            model = genai.GenerativeModel(model_name=model_name, safety_settings=safety_settings)
+            response = model.generate_content(prompt)
+            if response.text:
+                print(f"   ✅ Success with {model_name}!")
+                return response.text
+        except Exception as e:
+            # Short error log
+            print(f"   ❌ {model_name} Failed: 404/Error")
+            continue
+            
+    print("❌ ALL Google Gemini Models Failed.")
+    return None
 
 def get_ai_content(prompt):
     # PLAN A: Try OpenRouter (Free Models)
@@ -125,27 +142,16 @@ def get_ai_content(prompt):
             if content and len(content) > 100:
                 print("✅ OpenRouter Success!")
                 return content
-        except Exception as e:
-            # Short error msg
-            pass 
+        except Exception:
+            pass # Skip silently to save logs
     
-    # PLAN B: Google Gemini Direct (With Fallback)
+    # PLAN B: Google Gemini Direct (Loop through all models)
     print("🚨 Phase 1 Failed. Switching to Phase 2: Google Gemini Direct...")
+    content = generate_with_gemini(prompt)
     
-    # Attempt 1: Try specific version
-    content = generate_with_gemini(prompt, "gemini-1.5-flash-001")
     if content:
-        print("✅ Google Gemini (1.5 Flash) Success!")
-        return content.replace("```html", "").replace("```", "")
-        
-    # Attempt 2: Try standard Pro version (If Flash fails)
-    print("⚠️ Flash failed. Trying Gemini Pro...")
-    content = generate_with_gemini(prompt, "gemini-pro")
-    if content:
-        print("✅ Google Gemini (Pro) Success!")
         return content.replace("```html", "").replace("```", "")
 
-    print("❌ All Gemini Models Failed.")
     return None
 
 def save_to_firebase(title, content, slug, tag, image):
