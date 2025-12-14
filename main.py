@@ -25,40 +25,41 @@ FALLBACK_IMAGES = [
     "https://freepornx.site/images/default2.jpg"
 ]
 
+# --- SMART MODEL LIST (Agar ek fail hua to dusra chalega) ---
+FREE_MODELS = [
+    "google/gemini-2.0-flash-exp:free",
+    "google/gemini-2.0-flash-thinking-exp:free",
+    "meta-llama/llama-3-8b-instruct:free",
+    "microsoft/phi-3-medium-128k-instruct:free",
+    "huggingfaceh4/zephyr-7b-beta:free"
+]
+
 # --- SETUP ---
-# Firebase Credentials Load
 cred_dict = json.loads(os.environ.get("FIREBASE_CREDENTIALS"))
 cred = credentials.Certificate(cred_dict)
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
-# AI Setup
 client = OpenAI(
     api_key=os.environ.get("OPENROUTER_API_KEY"),
     base_url="https://openrouter.ai/api/v1",
 )
 
-# --- 1. NEW FUNCTION: MODEL URL GENERATOR ---
+# --- FUNCTIONS ---
+
 def create_model_button(star_name, image_url):
-    # Name ko URL Slug banao (e.g. "Sunny Leone" -> "sunny-leone")
     slug = star_name.lower().strip().replace(" ", "-")
-    
-    # Direct Model Page URL
     model_url = f"https://freepornx.site/index.html?tab=video&path=models%2F{slug}"
     
-    # Button Design
     html_code = f"""
     <div style="margin-top:30px; padding:20px; background:#0f0f0f; border:1px solid #333; border-radius:10px; text-align:center;">
         <h3 style="color:#fff; margin-bottom:10px;">🔥 {star_name} Exclusive Collection</h3>
-        
         <a href="{model_url}" target="_blank">
             <img src="{image_url}" alt="{star_name}" style="width:100%; max-width:400px; height:auto; border-radius:8px; margin-bottom:15px; border:2px solid #e50914;">
         </a>
-        
         <p style="color:#aaa; font-size:14px; margin-bottom:15px;">
             We have updated all leaked and premium videos of {star_name}. Click below to watch all.
         </p>
-        
         <a href="{model_url}" target="_blank" 
            style="background:#e50914; color:white; font-size:18px; font-weight:bold; padding:12px 30px; text-decoration:none; border-radius:5px; display:inline-block; box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);">
            ▶ Watch {star_name} All Videos
@@ -67,12 +68,10 @@ def create_model_button(star_name, image_url):
     """
     return html_code
 
-# --- 2. IMAGE SEARCHER ---
 def get_star_image(star_name):
     print(f"🔍 Searching image for: {star_name}...")
     try:
         with DDGS() as ddgs:
-            # 2-3 keywords try karenge taaki result pakka mile
             queries = [f"{star_name} model photoshoot hd", f"{star_name} wallpaper"]
             for q in queries:
                 results = list(ddgs.images(q, max_results=1, safesearch='off'))
@@ -82,7 +81,6 @@ def get_star_image(star_name):
         print(f"❌ Image Error: {e}")
     return random.choice(FALLBACK_IMAGES)
 
-# --- 3. HELPER FUNCTIONS ---
 def inject_internal_links(html_content):
     modified_content = html_content
     for word, link in KEYWORD_LINKS.items():
@@ -101,16 +99,24 @@ def get_page_image(soup):
     return random.choice(FALLBACK_IMAGES)
 
 def get_ai_content(prompt):
-    try:
-        # Google ka free model use kar rahe hain jo fast hai
-        response = client.chat.completions.create(
-            model="google/gemini-2.0-flash-exp:free",
-            messages=[{"role": "user", "content": prompt}]
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        print(f"AI Error: {e}")
-        return None
+    # Loop through ALL free models until one works
+    for model_name in FREE_MODELS:
+        try:
+            print(f"🤖 Trying AI Model: {model_name}...")
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            content = response.choices[0].message.content
+            if content:
+                return content
+        except Exception as e:
+            print(f"⚠️ {model_name} Failed: {e}")
+            time.sleep(1) # Wait 1 sec before trying next model
+            continue # Try next model
+            
+    print("❌ All AI Models failed.")
+    return None
 
 def save_to_firebase(title, content, slug, tag, image):
     try:
@@ -137,13 +143,9 @@ def post_biography():
         star = random.choice(stars)
         print(f"⭐ Processing Bio: {star}")
         
-        # 1. Image
         star_image = get_star_image(star)
-        
-        # 2. Button
         model_button = create_model_button(star, star_image)
 
-        # 3. Content
         prompt = f"""
         Write a detailed HTML biography of adult star "{star}".
         Structure:
@@ -192,6 +194,5 @@ def post_article():
 
 if __name__ == "__main__":
     post_biography()
-    time.sleep(2) # Thoda wait taki server crash na ho
+    time.sleep(2)
     post_article()
-
