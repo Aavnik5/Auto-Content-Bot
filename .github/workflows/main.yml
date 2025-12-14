@@ -28,6 +28,7 @@ jobs:
           # 👇 YE SABSE IMPORTANT LINE HAI
    
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}  # 👈 Ye line add karni hai
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}# 👈 Ye line add karni hai
   
         run: python main.py
