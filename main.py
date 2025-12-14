@@ -49,12 +49,6 @@ safety_settings = {
     HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
 }
 
-# FIX: Using the most stable model name
-gemini_model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash", 
-    safety_settings=safety_settings
-)
-
 # --- FIREBASE SETUP ---
 cred_dict = json.loads(os.environ.get("FIREBASE_CREDENTIALS"))
 cred = credentials.Certificate(cred_dict)
@@ -106,6 +100,16 @@ def inject_internal_links(html_content):
         modified_content = pattern.sub(replacement, modified_content)
     return modified_content
 
+def generate_with_gemini(prompt, model_name):
+    """Helper function to try specific Gemini models"""
+    try:
+        model = genai.GenerativeModel(model_name=model_name, safety_settings=safety_settings)
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        print(f"   ⚠️ Gemini Model {model_name} Failed: {e}")
+        return None
+
 def get_ai_content(prompt):
     # PLAN A: Try OpenRouter (Free Models)
     print("🤖 Phase 1: Trying OpenRouter Models...")
@@ -122,21 +126,26 @@ def get_ai_content(prompt):
                 print("✅ OpenRouter Success!")
                 return content
         except Exception as e:
-            print(f"   ⚠️ Failed ({model_name})") 
-            time.sleep(1)
-            continue
-
-    # PLAN B: Try Google Gemini Direct (Backup)
+            # Short error msg
+            pass 
+    
+    # PLAN B: Google Gemini Direct (With Fallback)
     print("🚨 Phase 1 Failed. Switching to Phase 2: Google Gemini Direct...")
-    try:
-        response = gemini_model.generate_content(prompt)
-        content = response.text
-        if content:
-            print("✅ Google Gemini Success!")
-            return content.replace("```html", "").replace("```", "")
-    except Exception as e:
-        print(f"❌ Google Gemini Failed too. Error: {e}")
+    
+    # Attempt 1: Try specific version
+    content = generate_with_gemini(prompt, "gemini-1.5-flash-001")
+    if content:
+        print("✅ Google Gemini (1.5 Flash) Success!")
+        return content.replace("```html", "").replace("```", "")
+        
+    # Attempt 2: Try standard Pro version (If Flash fails)
+    print("⚠️ Flash failed. Trying Gemini Pro...")
+    content = generate_with_gemini(prompt, "gemini-pro")
+    if content:
+        print("✅ Google Gemini (Pro) Success!")
+        return content.replace("```html", "").replace("```", "")
 
+    print("❌ All Gemini Models Failed.")
     return None
 
 def save_to_firebase(title, content, slug, tag, image):
