@@ -26,23 +26,21 @@ FALLBACK_IMAGES = [
     "https://freepornx.site/images/default2.jpg"
 ]
 
-# --- 1. OPENROUTER SETUP (Primary) ---
+# --- 1. OPENROUTER SETUP (Updated List) ---
+# Removed broken/404 models. Kept only reliable free ones.
 OPENROUTER_MODELS = [
-    "meta-llama/llama-3.2-3b-instruct:free",
-    "qwen/qwen-2-7b-instruct:free",
     "google/gemini-2.0-flash-exp:free",
-    "microsoft/phi-3-mini-128k-instruct:free",
-    "huggingfaceh4/zephyr-7b-beta:free"
+    "meta-llama/llama-3.2-3b-instruct:free",
+    "mistralai/mistral-7b-instruct:free",
+    "microsoft/phi-3-medium-128k-instruct:free"
 ]
 
-# FIX: Using 'OPENAI_API_KEY' to match GitHub Secret
 client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY"),
     base_url="https://openrouter.ai/api/v1",
 )
 
 # --- 2. GOOGLE GEMINI SETUP (Backup) ---
-# FIX: Using 'GOOGLE_API_KEY' to match GitHub Secret
 genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
 
 safety_settings = {
@@ -52,9 +50,9 @@ safety_settings = {
     HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
 }
 
-# FIX: Model name corrected (removed 'models/')
+# FIX: Changed model name to a more specific version to avoid 404 errors
 gemini_model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
+    model_name="gemini-1.5-flash-latest", 
     safety_settings=safety_settings
 )
 
@@ -93,12 +91,13 @@ def create_model_button(star_name, image_url):
 def get_image_from_ddg(query):
     print(f"🔍 Searching image for: {query}...")
     try:
-        with DDGS() as ddgs:
+        # Added timeout to prevent hanging
+        with DDGS(timeout=20) as ddgs:
             results = list(ddgs.images(query, max_results=1, safesearch='off'))
             if results:
                 return results[0]['image']
     except Exception as e:
-        print(f"❌ Image Error: {e}")
+        print(f"❌ Image Error (Using Fallback): {e}")
     return random.choice(FALLBACK_IMAGES)
 
 def inject_internal_links(html_content):
@@ -125,7 +124,9 @@ def get_ai_content(prompt):
                 print("✅ OpenRouter Success!")
                 return content
         except Exception as e:
-            print(f"   ⚠️ Failed ({model_name}). Error: {e}")
+            # Short error msg to keep logs clean
+            print(f"   ⚠️ Failed ({model_name})") 
+            time.sleep(1) # Small pause
             continue
 
     # PLAN B: Try Google Gemini Direct (Backup)
@@ -135,7 +136,6 @@ def get_ai_content(prompt):
         content = response.text
         if content:
             print("✅ Google Gemini Success!")
-            # Cleaning markdown code blocks if present
             return content.replace("```html", "").replace("```", "")
     except Exception as e:
         print(f"❌ Google Gemini Failed too. Error: {e}")
@@ -207,7 +207,7 @@ def post_article():
         print(f"🔍 Searching Trending Topic for: {query}...")
         
         topic = None
-        with DDGS() as ddgs:
+        with DDGS(timeout=20) as ddgs:
             results = list(ddgs.text(query, max_results=1))
             if results:
                 topic = results[0]['title']
