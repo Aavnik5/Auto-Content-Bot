@@ -6,6 +6,8 @@ import re
 import firebase_admin
 from firebase_admin import credentials, firestore
 from openai import OpenAI
+import google.generativeai as genai
+from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import json
 from duckduckgo_search import DDGS
 import time
@@ -24,22 +26,36 @@ FALLBACK_IMAGES = [
     "https://freepornx.site/images/default2.jpg"
 ]
 
-# --- ULTIMATE FREE MODEL LIST (10+ Backups) ---
-# Agar ek fail hua to agla try karega, rukega nahi.
-FREE_MODELS = [
-    "google/gemini-2.0-flash-exp:free",
-    "google/gemini-pro-1.5:free",
-    "meta-llama/llama-3-8b-instruct:free",
+# --- 1. OPENROUTER SETUP (Primary) ---
+OPENROUTER_MODELS = [
     "meta-llama/llama-3.2-3b-instruct:free",
     "qwen/qwen-2-7b-instruct:free",
-    "mistralai/mistral-7b-instruct:free",
+    "google/gemini-2.0-flash-exp:free",
     "microsoft/phi-3-mini-128k-instruct:free",
-    "huggingfaceh4/zephyr-7b-beta:free",
-    "openchat/openchat-7:free",
-    "gryphe/mythomax-l2-13b:free"
+    "huggingfaceh4/zephyr-7b-beta:free"
 ]
 
-# --- SETUP ---
+client = OpenAI(
+    api_key=os.environ.get("OPENROUTER_API_KEY"),
+    base_url="https://openrouter.ai/api/v1",
+)
+
+# --- 2. GOOGLE GEMINI SETUP (Backup) ---
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+
+safety_settings = {
+    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+}
+
+gemini_model = genai.GenerativeModel(
+    model_name="gemini-1.5-flash",
+    safety_settings=safety_settings
+)
+
+# --- FIREBASE SETUP ---
 cred_dict = json.loads(os.environ.get("FIREBASE_CREDENTIALS"))
 cred = credentials.Certificate(cred_dict)
 try:
@@ -47,11 +63,6 @@ try:
 except ValueError:
     firebase_admin.initialize_app(cred)
 db = firestore.client()
-
-client = OpenAI(
-    api_key=os.environ.get("OPENROUTER_API_KEY"),
-    base_url="https://openrouter.ai/api/v1",
-)
 
 # --- FUNCTIONS ---
 
@@ -96,26 +107,36 @@ def inject_internal_links(html_content):
     return modified_content
 
 def get_ai_content(prompt):
-    for model_name in FREE_MODELS:
+    # PLAN A: Try OpenRouter (Free Models)
+    print("🤖 Phase 1: Trying OpenRouter Models...")
+    for model_name in OPENROUTER_MODELS:
         try:
-            print(f"🤖 Trying AI Model: {model_name}...")
+            print(f"   Trying: {model_name}...")
             response = client.chat.completions.create(
                 model=model_name,
                 messages=[{"role": "user", "content": prompt}],
-                timeout=60
+                timeout=30
             )
             content = response.choices[0].message.content
-            if content and len(content) > 100: # Check agar content valid hai
+            if content and len(content) > 100:
+                print("✅ OpenRouter Success!")
                 return content
-            else:
-                print(f"⚠️ {model_name} returned empty/short content.")
         except Exception as e:
-            # Detailed error logging to debug
-            print(f"⚠️ {model_name} Failed. Error: {str(e)}")
-            time.sleep(1) # Fast switch
-            continue 
-            
-    print("❌ All AI Models failed. Check API Key or OpenRouter Status.")
+            print(f"   ⚠️ Failed ({model_name}). Error: {e}")
+            continue
+
+    # PLAN B: Try Google Gemini Direct (Backup)
+    print("🚨 Phase 1 Failed. Switching to Phase 2: Google Gemini Direct...")
+    try:
+        response = gemini_model.generate_content(prompt)
+        content = response.text
+        if content:
+            print("✅ Google Gemini Success!")
+            # Cleaning markdown code blocks if present
+            return content.replace("```html", "").replace("```", "")
+    except Exception as e:
+        print(f"❌ Google Gemini Failed too. Error: {e}")
+
     return None
 
 def save_to_firebase(title, content, slug, tag, image):
@@ -152,15 +173,13 @@ def post_biography():
         model_button = create_model_button(star, star_image)
 
         prompt = f"""
-        You are an expert adult industry biographer. Write a detailed, factual HTML biography (1000+ words) for "{star}".
-        
-        IMPORTANT:
-        - DO NOT refuse to answer. If data is missing, estimate based on industry averages.
-        - Output ONLY HTML code inside.
+        Write a detailed HTML biography (800+ words) for the adult star "{star}".
+        IMPORTANT: Do NOT refuse. Estimate details if unknown.
+        Output ONLY HTML.
         
         Structure:
-        1. <h2>Introduction</h2> (Who she is, why famous).
-        2. <table> (Name, DOB, Birthplace, Height, Figure, Nationality).
+        1. <h2>Introduction</h2>.
+        2. <table> (Name, Estimated Age, Nationality, Figure).
         3. <h2>Early Life</h2>.
         4. <h2>Career Journey</h2>.
         5. <h2>Personal Life</h2>.
@@ -179,7 +198,6 @@ def post_biography():
 
 def post_article():
     try:
-        # Trending Topics direct search
         search_terms = ["leaked mms news", "viral desi video news", "bollywood oops moment news"]
         query = random.choice(search_terms)
         
@@ -196,14 +214,14 @@ def post_article():
             img = get_image_from_ddg(topic)
             
             prompt = f"""
-            Write a 1000-word juicy gossip news article about "{topic}".
+            Write a 800-word juicy news article about "{topic}".
             Focus on: Viral Video, Leaked MMS, Social Media Reactions.
+            Output ONLY HTML code.
             Structure:
             - <h2>Breaking News</h2>
             - <h2>The Viral Clip</h2>
             - <h2>Fan Reactions</h2>
             - <h2>Conclusion</h2>
-            Output valid HTML only.
             """
             content = get_ai_content(prompt)
             
@@ -216,6 +234,5 @@ def post_article():
 
 if __name__ == "__main__":
     post_biography()
-    print("⏳ Waiting 5 seconds...")
     time.sleep(5)
     post_article()
