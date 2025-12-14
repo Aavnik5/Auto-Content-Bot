@@ -88,84 +88,105 @@ def inject_internal_links(html_content):
         modified_content = pattern.sub(replacement, modified_content)
     return modified_content
 
-def generate_gemini_rest(prompt, model_name="gemini-1.5-flash"):
-    """
-    Direct REST API Call to Google Servers.
-    Bypasses the buggy Python SDK.
-    """
+def debug_list_google_models():
+    """Ask Google which models are actually available for this Key"""
     api_key = os.environ.get("GOOGLE_API_KEY")
-    if not api_key:
-        print("❌ GOOGLE_API_KEY Missing!")
-        return None
-
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
-    headers = {'Content-Type': 'application/json'}
-    data = {
-        "contents": [{
-            "parts": [{"text": prompt}]
-        }],
-        "safetySettings": [
-            {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
-            {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
-            {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
-            {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"}
-        ]
-    }
-
+    url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
     try:
-        response = requests.post(url, headers=headers, json=data, timeout=30)
-        
+        response = requests.get(url)
         if response.status_code == 200:
-            result = response.json()
-            try:
-                return result['candidates'][0]['content']['parts'][0]['text']
-            except (KeyError, IndexError):
-                print(f"⚠️ Unexpected JSON format from Google: {result}")
-                return None
+            models = response.json().get('models', [])
+            print("📋 Available Google Models for this Key:")
+            for m in models:
+                if 'generateContent' in m.get('supportedGenerationMethods', []):
+                    print(f"   - {m['name']}")
         else:
-            print(f"❌ Gemini REST Error {response.status_code}: {response.text}")
-            return None
+            print(f"⚠️ Could not list models. Status: {response.status_code}")
     except Exception as e:
-        print(f"❌ Request Failed: {e}")
-        return None
+        print(f"⚠️ Debug Error: {e}")
 
-def get_ai_content(prompt):
-    # PLAN A: Try OpenRouter (Free Models)
-    print("🤖 Phase 1: Trying OpenRouter Models...")
+def generate_gemini_rest(prompt, model_name="gemini-1.5-flash"):
+    api_key = os.environ.get("GOOGLE_API_KEY")
+    # Trying stable v1 first, then v1beta
+    versions = ["v1beta", "v1"]
+    
+    for version in versions:
+        url = f"https://generativelanguage.googleapis.com/{version}/models/{model_name}:generateContent?key={api_key}"
+        headers = {'Content-Type': 'application/json'}
+        data = { "contents": [{ "parts": [{"text": prompt}] }] }
+
+        try:
+            response = requests.post(url, headers=headers, json=data, timeout=30)
+            if response.status_code == 200:
+                result = response.json()
+                return result['candidates'][0]['content']['parts'][0]['text']
+        except Exception:
+            continue # Try next version silently
+            
+    return None
+
+def get_fallback_content(topic_type, title):
+    """If AI fails completely, use this pre-written template so script doesn't crash."""
+    print("⚠️ Using Generic Fallback Content (AI Failed)")
+    
+    if topic_type == "Bio":
+        return f"""
+        <h2>Introduction</h2>
+        <p>{title} is a trending social media personality and adult film star who has gained immense popularity recently.</p>
+        <h2>Career</h2>
+        <p>She started her career in the entertainment industry and quickly rose to fame due to her stunning looks and performances.</p>
+        <h2>Popularity</h2>
+        <p>Her videos often go viral on social media platforms like Instagram and Twitter.</p>
+        <h2>Conclusion</h2>
+        <p>Watch her exclusive collection using the link below.</p>
+        """
+    else: # News
+        return f"""
+        <h2>Breaking News: {title}</h2>
+        <p>A new video related to <strong>{title}</strong> has gone viral on social media today.</p>
+        <h2>The Viral Clip</h2>
+        <p>The video is being shared widely on WhatsApp, Reddit, and Twitter. Fans are reacting with shock and surprise.</p>
+        <h2>Public Reaction</h2>
+        <p>Many users are searching for the full video link. It has become a top trending topic on Google Trends.</p>
+        <h2>Conclusion</h2>
+        <p>Stay tuned for more updates on this story.</p>
+        """
+
+def get_ai_content(prompt, topic_type="Bio", title="Unknown"):
+    # 1. Debug: Check models once
+    # debug_list_google_models() # Uncomment if you want to see list in logs
+
+    # PLAN A: OpenRouter
+    print("🤖 Phase 1: Trying OpenRouter...")
     for model_name in OPENROUTER_MODELS:
         try:
-            print(f"   Trying: {model_name}...")
             response = client.chat.completions.create(
                 model=model_name,
                 messages=[{"role": "user", "content": prompt}],
-                timeout=30
+                timeout=20
             )
             content = response.choices[0].message.content
             if content and len(content) > 100:
                 print("✅ OpenRouter Success!")
                 return content
         except Exception:
-            pass # Silent fail to save time
+            pass 
     
-    # PLAN B: Google Gemini REST API (The Nuclear Option)
-    print("🚨 Phase 1 Failed. Switching to Phase 2: Google Gemini REST API...")
+    # PLAN B: Google Gemini REST
+    print("🚨 Phase 1 Failed. Switching to Google Gemini REST...")
+    # List of models to brute force
+    google_models = ["gemini-1.5-flash", "gemini-pro", "gemini-1.0-pro"]
     
-    # Try 1: Flash
-    print("   👉 Trying REST API: gemini-1.5-flash...")
-    content = generate_gemini_rest(prompt, "gemini-1.5-flash")
-    if content:
-        print("✅ Gemini REST Success!")
-        return content.replace("```html", "").replace("```", "")
+    for gm in google_models:
+        print(f"   👉 Trying {gm}...")
+        content = generate_gemini_rest(prompt, gm)
+        if content:
+            print(f"✅ Google Gemini ({gm}) Success!")
+            return content.replace("```html", "").replace("```", "")
 
-    # Try 2: Pro (Backup)
-    print("   👉 Trying REST API: gemini-pro...")
-    content = generate_gemini_rest(prompt, "gemini-pro")
-    if content:
-        print("✅ Gemini REST Success!")
-        return content.replace("```html", "").replace("```", "")
-        
-    print("❌ All Generation Methods Failed.")
-    return None
+    # PLAN C: FINAL FALLBACK (Prevent Crash)
+    print("❌ All AI Models Failed. Using Fallback Template.")
+    return get_fallback_content(topic_type, title)
 
 def save_to_firebase(title, content, slug, tag, image):
     try:
@@ -201,24 +222,15 @@ def post_biography():
         model_button = create_model_button(star, star_image)
 
         prompt = f"""
-        Write a detailed HTML biography (800+ words) for the adult star "{star}".
-        IMPORTANT: Do NOT refuse. Estimate details if unknown.
+        Write a detailed HTML biography (800 words) for "{star}".
+        Structure: Intro, Stats Table, Early Life, Career, Conclusion.
         Output ONLY HTML.
-        
-        Structure:
-        1. <h2>Introduction</h2>.
-        2. <table> (Name, Estimated Age, Nationality, Figure).
-        3. <h2>Early Life</h2>.
-        4. <h2>Career Journey</h2>.
-        5. <h2>Personal Life</h2>.
-        6. <h2>Conclusion</h2>.
         """
-        content = get_ai_content(prompt)
+        content = get_ai_content(prompt, "Bio", star)
         
         if content:
             content = inject_internal_links(content)
             final_content = content + model_button
-            
             slug = f"{star.lower().replace(' ', '-')}-biography"
             save_to_firebase(f"{star}: Biography & Videos", final_content, slug, "Bio", star_image)
     except Exception as e:
@@ -230,22 +242,19 @@ def post_article():
         query = random.choice(search_terms)
         
         print(f"🔍 Searching Trending Topic for: {query}...")
-        
         topic = None
         
-        # 1. Try fetching Live News
         try:
             with DDGS(timeout=20) as ddgs:
                 results = list(ddgs.text(query, region='in-en', max_results=1)) 
                 if results:
                     topic = results[0]['title']
                     print(f"🔥 Found Trending Topic: {topic}")
-        except Exception as e:
-            print(f"⚠️ Search failed: {e}")
+        except Exception:
+            pass
 
-        # 2. Backup Plan (Agar search se topic nahi mila)
         if not topic:
-            print("⚠️ Koi Trending News nahi mili. Using Backup Topic.")
+            print("⚠️ Using Backup Topic.")
             backup_topics = [
                 "Why Leaked MMS Videos Go Viral on Social Media?",
                 "Dark Side of Internet: How Private Videos Get Leaked",
@@ -253,30 +262,19 @@ def post_article():
                 "Safety Tips: How to Protect Your Private Videos from Leaks"
             ]
             topic = random.choice(backup_topics)
-            print(f"✅ Selected Backup Topic: {topic}")
 
-        # 3. Content Generation
         if topic:
             img = get_image_from_ddg(topic)
-            
             prompt = f"""
-            Write a 800-word sensational article about "{topic}".
-            Focus on: Viral trends, public reaction, and controversy.
-            Output ONLY HTML code.
-            Structure:
-            - <h2>The Story</h2>
-            - <h2>Why It Went Viral</h2>
-            - <h2>Public Reactions</h2>
-            - <h2>Conclusion</h2>
+            Write a 800-word juicy article about "{topic}".
+            Focus on viral trends. Output ONLY HTML.
             """
-            content = get_ai_content(prompt)
+            content = get_ai_content(prompt, "News", topic)
             
             if content:
                 content = inject_internal_links(content)
                 slug = topic.lower().replace(" ", "-").replace(":", "").replace("?", "")[:60]
                 save_to_firebase(topic, content, slug, "News", img)
-            else:
-                print("❌ Content generation failed.")
 
     except Exception as e:
         print(f"Article Error: {e}")
