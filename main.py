@@ -291,7 +291,7 @@ def post_biography():
             content = inject_internal_links(content)
             final_content = content + model_button
             slug = f"{star.lower().replace(' ', '-')}-biography"
-            save_to_firebase(f"{star}: Biography & Videos", final_content, slug, "Bio", star_image)
+            save_to_firebase(f"{star}: Porn Star Biography & Video", final_content, slug, "Bio", star_image)
     except Exception as e:
         print(f"Bio Error: {e}")
 
@@ -355,3 +355,4 @@ if __name__ == "__main__":
     post_biography()
     time.sleep(5)
     post_article()
+
