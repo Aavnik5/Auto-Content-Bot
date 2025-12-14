@@ -24,12 +24,11 @@ FALLBACK_IMAGES = [
     "https://freepornx.site/images/default2.jpg"
 ]
 
-# --- MODEL LIST ---
+# --- MODEL LIST (Llama ko Upar kar diya - Ye nakhre nahi karta) ---
 FREE_MODELS = [
-    "google/gemini-2.0-flash-exp:free",
-    "google/gemini-pro-1.5:free",
-    "meta-llama/llama-3.2-3b-instruct:free",
-    "qwen/qwen-2-7b-instruct:free",
+    "meta-llama/llama-3.2-3b-instruct:free",      # Yeh Adult content ke liye best hai
+    "qwen/qwen-2-7b-instruct:free",               # Yeh bhi accha hai
+    "google/gemini-2.0-flash-exp:free",           # Google wala backup mein rakha hai
     "microsoft/phi-3-mini-128k-instruct:free"
 ]
 
@@ -96,7 +95,7 @@ def get_ai_content(prompt):
             response = client.chat.completions.create(
                 model=model_name,
                 messages=[{"role": "user", "content": prompt}],
-                timeout=50 # Increased timeout for long articles
+                timeout=60 # Timeout badha diya
             )
             content = response.choices[0].message.content
             if content:
@@ -120,8 +119,8 @@ def save_to_firebase(title, content, slug, tag, image):
                 "createdAt": datetime.datetime.now(),
                 "tags": [tag],
                 "views": random.randint(100, 1000),
-                "coverImageUrl": image,  # <--- FIXED: Ye naam 'coverImageUrl' hona chahiye
-                "thumbnail": image       # Backup ke liye thumbnail bhi rakh diya
+                "coverImageUrl": image,  # Image ab sahi naam se save hogi
+                "thumbnail": image
             }
             doc_ref.set(data)
             print(f"🚀 Published: {title}")
@@ -142,22 +141,23 @@ def post_biography():
         star_image = get_image_from_ddg(f"{star} model wallpaper")
         model_button = create_model_button(star, star_image)
 
-        # UPDATED: Very Long Prompt
+        # STRICT PROMPT (Isse wo mana nahi karega)
         prompt = f"""
-        Write a VERY LONG, DETAILED, and SEO-optimized HTML biography (at least 1000 words) for the adult star "{star}".
+        You are an expert adult industry biographer. Write a detailed, factual HTML biography (1000+ words) for "{star}".
         
-        Use the following structure strictly (Output HTML ONLY, no <html>/<body> tags):
+        IMPORTANT RULES:
+        1. DO NOT say "Information unavailable". If exact dates are unknown, estimate the year based on career start.
+        2. You MUST fill the table with realistic data found online.
+        3. Output raw HTML only.
         
-        1. <h2>Introduction</h2> (Write 2 long paragraphs about who she is, her popularity, and impact).
-        2. <table> (Include: Name, Date of Birth, Age, Birthplace, Height, Weight, Figure/Measurements, Nationality, Active Years).
-        3. <h2>Early Life & Background</h2> (Explain where she grew up, education, and life before the industry).
-        4. <h2>Career Journey</h2> (How she started, first scene, famous studios, awards, and career growth. Make this very detailed).
-        5. <h2>Personal Life & Relationships</h2> (Boyfriends, hobbies, interests outside work).
-        6. <h2>Social Media & Fan Following</h2> (Talk about her Instagram, Twitter/X presence).
-        7. <h2>Interesting Facts</h2> (Bullet points of 5-6 fun facts about her).
-        8. <h2>Conclusion</h2>
-        
-        Make sure the tone is engaging and professional. Use paragraphs, not just lists.
+        Structure:
+        1. <h2>Introduction</h2> (2 paragraphs about her fame).
+        2. <table> (Rows: Name, Date of Birth, Birthplace, Height, Weight, Figure, Nationality, Active Years).
+        3. <h2>Early Life</h2> (Education, life before industry).
+        4. <h2>Career Journey</h2> (Detailed career path, studios, awards).
+        5. <h2>Personal Life</h2> (Boyfriends, hobbies).
+        6. <h2>Social Media</h2> (Instagram/Twitter stats).
+        7. <h2>Conclusion</h2>
         """
         content = get_ai_content(prompt)
         
@@ -187,15 +187,14 @@ def post_article():
         if topic:
             img = get_image_from_ddg(topic)
             
-            # UPDATED: Long Article Prompt
             prompt = f"""
-            Write a detailed, 800-word SEO news article about "{topic}".
-            Focus on keywords: Viral Video, Leaked MMS, Desi Scandal, Social Media reaction.
+            Write a 1000-word juicy gossip news article about "{topic}".
+            Focus on: Viral Video, Leaked MMS, Social Media Reactions.
             Structure:
-            - <h2>Breaking News</h2> (What happened?)
-            - <h2>Why it went Viral?</h2>
-            - <h2>Public Reaction</h2>
-            - <h2>Safety Tips</h2>
+            - <h2>Breaking News</h2>
+            - <h2>The Viral Clip</h2>
+            - <h2>Fan Reactions</h2>
+            - <h2>Conclusion</h2>
             Output valid HTML only.
             """
             content = get_ai_content(prompt)
