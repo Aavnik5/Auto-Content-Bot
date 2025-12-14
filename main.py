@@ -19,10 +19,19 @@ KEYWORD_LINKS = {
     "Video": "/index.html"
 }
 
-# UPDATE: Using reliable placeholder images in case search fails
-FALLBACK_IMAGES = [
-    "https://t3.ftcdn.net/jpg/00/48/18/84/360_F_48188448_y5Z8i7a2J9h4h8i4.jpg", # Generic News Image
-    "https://media.istockphoto.com/id/1182473335/photo/breaking-news-concept.jpg?s=612x612&w=0&k=20&c=0s3tS9i_1d4_1d4_1d4.jpg"  # Breaking News Image
+# --- RELIABLE FALLBACK IMAGES (Unsplash - Always Working) ---
+BIO_FALLBACKS = [
+    "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=600&auto=format&fit=crop", # Generic Model 1
+    "https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=600&auto=format&fit=crop", # Generic Model 2
+    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop", # Generic Model 3
+    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=600&auto=format&fit=crop"  # Generic Model 4
+]
+
+NEWS_FALLBACKS = [
+    "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=600&auto=format&fit=crop", # Breaking News
+    "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?q=80&w=600&auto=format&fit=crop", # News TV
+    "https://images.unsplash.com/photo-1529070538774-1843cb3265df?q=80&w=600&auto=format&fit=crop", # Social Media Viral
+    "https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?q=80&w=600&auto=format&fit=crop"  # Analytics/Trend
 ]
 
 # --- 1. OPENROUTER SETUP ---
@@ -70,20 +79,24 @@ def create_model_button(star_name, image_url):
     """
     return html_code
 
-def get_image_from_ddg(query):
+def get_image_from_ddg(query, image_type="Bio"):
     print(f"🔍 Searching image for: {query}...")
     try:
-        # Retry logic added
-        with DDGS(timeout=20) as ddgs:
+        # Short timeout to fail fast if blocked
+        with DDGS(timeout=10) as ddgs:
             results = list(ddgs.images(query, max_results=1, safesearch='off'))
             if results:
-                print("✅ Image Found")
+                print("✅ DDG Image Found")
                 return results[0]['image']
     except Exception as e:
-        print(f"❌ Image Error (Using Fallback): {e}")
+        print(f"⚠️ DDG Image Search Failed: {e}")
     
-    print("⚠️ Using Fallback Image")
-    return random.choice(FALLBACK_IMAGES)
+    # --- SAFETY NET: Always return a working image ---
+    print(f"⚠️ Using {image_type} Fallback Image")
+    if image_type == "Bio":
+        return random.choice(BIO_FALLBACKS)
+    else:
+        return random.choice(NEWS_FALLBACKS)
 
 def inject_internal_links(html_content):
     modified_content = html_content
@@ -187,6 +200,7 @@ def get_ai_content(prompt, topic_type="Bio", title="Unknown"):
     print("🤖 Phase 1: Trying OpenRouter...")
     for model_name in OPENROUTER_MODELS:
         try:
+            # Added system prompt to enforce HTML structure
             response = client.chat.completions.create(
                 model=model_name,
                 messages=[
@@ -220,6 +234,7 @@ def get_ai_content(prompt, topic_type="Bio", title="Unknown"):
 def save_to_firebase(title, content, slug, tag, image):
     try:
         doc_ref = db.collection("articles").document(slug)
+        # Check if already exists
         if not doc_ref.get().exists:
             data = {
                 "title": title,
@@ -253,7 +268,8 @@ def post_biography():
         star = random.choice(stars)
         print(f"⭐ Processing Bio: {star}")
         
-        star_image = get_image_from_ddg(f"{star} model wallpaper")
+        # Explicitly asking for "Bio" type image
+        star_image = get_image_from_ddg(f"{star} model wallpaper", image_type="Bio")
         model_button = create_model_button(star, star_image)
 
         prompt = f"""
@@ -306,12 +322,11 @@ def post_article():
             ]
             topic = random.choice(backup_topics)
 
-        # FIX: Image search ke liye 'topic' use mat karo (wo lamba hota hai)
-        # Use a generic generic keyword for higher success rate
-        image_search_query = "Viral Social Media News Trend"
         if topic:
-            print(f"🔍 Searching image for generic query: {image_search_query}")
-            img = get_image_from_ddg(image_search_query) 
+            # Explicitly asking for "News" type image, bypassing topic-specific search if needed
+            # But let's try a generic search first which is safer
+            generic_search = "Social Media Viral News"
+            img = get_image_from_ddg(generic_search, image_type="News")
             
             prompt = f"""
             Write a sensational 800-word news article about "{topic}".
