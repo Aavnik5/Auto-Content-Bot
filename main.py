@@ -9,6 +9,7 @@ from firebase_admin import credentials, firestore
 from openai import OpenAI
 import json
 from duckduckgo_search import DDGS
+import time
 
 # --- CONFIGURATION ---
 KEYWORD_LINKS = {
@@ -25,25 +26,27 @@ FALLBACK_IMAGES = [
 ]
 
 # --- SETUP ---
+# Firebase Credentials Load
 cred_dict = json.loads(os.environ.get("FIREBASE_CREDENTIALS"))
 cred = credentials.Certificate(cred_dict)
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
+# AI Setup
 client = OpenAI(
     api_key=os.environ.get("OPENROUTER_API_KEY"),
     base_url="https://openrouter.ai/api/v1",
 )
 
-# --- 1. NEW FUNCTION: GENERATE MODEL URL ---
+# --- 1. NEW FUNCTION: MODEL URL GENERATOR ---
 def create_model_button(star_name, image_url):
-    # Name ko URL format me badalna (e.g. "Dani Daniels" -> "dani-daniels")
+    # Name ko URL Slug banao (e.g. "Sunny Leone" -> "sunny-leone")
     slug = star_name.lower().strip().replace(" ", "-")
     
-    # Ye wo link hai jo aapne manga
+    # Direct Model Page URL
     model_url = f"https://freepornx.site/index.html?tab=video&path=models%2F{slug}"
     
-    # HTML Button Design
+    # Button Design
     html_code = f"""
     <div style="margin-top:30px; padding:20px; background:#0f0f0f; border:1px solid #333; border-radius:10px; text-align:center;">
         <h3 style="color:#fff; margin-bottom:10px;">🔥 {star_name} Exclusive Collection</h3>
@@ -64,16 +67,17 @@ def create_model_button(star_name, image_url):
     """
     return html_code
 
-# --- 2. IMAGE SEARCHER (DuckDuckGo) ---
+# --- 2. IMAGE SEARCHER ---
 def get_star_image(star_name):
     print(f"🔍 Searching image for: {star_name}...")
     try:
         with DDGS() as ddgs:
-            # Model photoshoot search karenge achi quality ke liye
-            results = list(ddgs.images(f"{star_name} model photoshoot hd", max_results=1, safesearch='off'))
-            if results:
-                print("✅ Image Found")
-                return results[0]['image']
+            # 2-3 keywords try karenge taaki result pakka mile
+            queries = [f"{star_name} model photoshoot hd", f"{star_name} wallpaper"]
+            for q in queries:
+                results = list(ddgs.images(q, max_results=1, safesearch='off'))
+                if results:
+                    return results[0]['image']
     except Exception as e:
         print(f"❌ Image Error: {e}")
     return random.choice(FALLBACK_IMAGES)
@@ -98,79 +102,95 @@ def get_page_image(soup):
 
 def get_ai_content(prompt):
     try:
+        # Google ka free model use kar rahe hain jo fast hai
         response = client.chat.completions.create(
-            model="meta-llama/llama-3-8b-instruct:free",
+            model="google/gemma-2-9b-it:free",
             messages=[{"role": "user", "content": prompt}]
         )
         return response.choices[0].message.content
-    except Exception as e: return None
+    except Exception as e:
+        print(f"AI Error: {e}")
+        return None
 
 def save_to_firebase(title, content, slug, tag, image):
-    doc_ref = db.collection("articles").document(slug)
-    if not doc_ref.get().exists:
-        data = {
-            "title": title, "content": content, "slug": slug,
-            "createdAt": datetime.datetime.now(), "tags": [tag],
-            "views": random.randint(100, 1000), "thumbnail": image
-        }
-        doc_ref.set(data)
-        print(f"🚀 Published: {title}")
-    else: print("⚠️ Exists, Skipping.")
+    try:
+        doc_ref = db.collection("articles").document(slug)
+        if not doc_ref.get().exists:
+            data = {
+                "title": title, "content": content, "slug": slug,
+                "createdAt": datetime.datetime.now(), "tags": [tag],
+                "views": random.randint(100, 1000), "thumbnail": image
+            }
+            doc_ref.set(data)
+            print(f"🚀 Published: {title}")
+        else:
+            print(f"⚠️ Exists, Skipping: {title}")
+    except Exception as e:
+        print(f"Database Error: {e}")
 
 # --- TASKS ---
 def post_biography():
-    # Stars list se naam uthayega
-    with open("stars.txt", "r") as f: stars = [s.strip() for s in f.readlines() if s.strip()]
-    star = random.choice(stars)
-    print(f"⭐ Processing Bio: {star}")
-    
-    # 1. Image Search
-    star_image = get_star_image(star)
-    
-    # 2. Button Create (Model URL wala)
-    model_button_html = create_model_button(star, star_image)
+    try:
+        with open("stars.txt", "r") as f: stars = [s.strip() for s in f.readlines() if s.strip()]
+        if not stars: return
+        
+        star = random.choice(stars)
+        print(f"⭐ Processing Bio: {star}")
+        
+        # 1. Image
+        star_image = get_star_image(star)
+        
+        # 2. Button
+        model_button = create_model_button(star, star_image)
 
-    # 3. AI Bio Write
-    prompt = f"""
-    Write a HTML biography of adult star "{star}". 
-    Use <h2> for headings and <p> for text.
-    Include a <table> for stats (Age, Height, Nationality). 
-    Do NOT include <html>, <head>, or <body> tags.
-    """
-    content = get_ai_content(prompt)
-    
-    if content:
-        content = inject_internal_links(content)
+        # 3. Content
+        prompt = f"""
+        Write a detailed HTML biography of adult star "{star}".
+        Structure:
+        - <h2>Introduction</h2>
+        - <table> with rows for: Age, Height, Nationality, Figure.
+        - <h2>Career & Early Life</h2>
+        - <h2>Why She is Famous</h2>
+        Output HTML ONLY. No <html> or <body> tags.
+        """
+        content = get_ai_content(prompt)
         
-        # Article = Bio Text + Model Button
-        final_content = content + model_button_html
-        
-        save_to_firebase(
-            title=f"{star}: Biography, Wiki & All Videos (2025)", 
-            content=final_content, 
-            slug=f"{star}-bio".lower().replace(' ', '-'), 
-            tag="Bio", 
-            image=star_image
-        )
+        if content:
+            content = inject_internal_links(content)
+            final_content = content + model_button
+            
+            slug = f"{star.lower().replace(' ', '-')}-biography"
+            save_to_firebase(f"{star}: Biography & Videos", final_content, slug, "Bio", star_image)
+    except Exception as e:
+        print(f"Bio Error: {e}")
 
 def post_article():
-    with open("sites.txt", "r") as f: sites = [s.strip() for s in f.readlines() if s.strip()]
-    url = random.choice(sites)
     try:
+        with open("sites.txt", "r") as f: sites = [s.strip() for s in f.readlines() if s.strip()]
+        if not sites: return
+
+        url = random.choice(sites)
         r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
         soup = BeautifulSoup(r.content, 'html.parser')
+        
         img = get_page_image(soup)
         topics = [h.text.strip() for h in soup.find_all(['h1', 'h2']) if len(h.text.strip()) > 15]
+        
         if topics:
             topic = random.choice(topics)
             print(f"📝 Writing Article: {topic}")
-            prompt = f"Write a SEO HTML blog post about '{topic}'. Use keywords Viral, MMS. No <html> tags."
+            
+            prompt = f"Write a SEO friendly HTML blog post about '{topic}'. Use tags like Viral, MMS, Leaked. No <html> tags."
             content = get_ai_content(prompt)
+            
             if content:
                 content = inject_internal_links(content)
-                save_to_firebase(topic, content, topic.lower().replace(" ", "-")[:50], "News", img)
-    except: pass
+                slug = topic.lower().replace(" ", "-")[:60]
+                save_to_firebase(topic, content, slug, "News", img)
+    except Exception as e:
+        print(f"Article Error: {e}")
 
 if __name__ == "__main__":
     post_biography()
+    time.sleep(2) # Thoda wait taki server crash na ho
     post_article()
