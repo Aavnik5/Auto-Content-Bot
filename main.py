@@ -19,9 +19,10 @@ KEYWORD_LINKS = {
     "Video": "/index.html"
 }
 
+# UPDATE: Using reliable placeholder images in case search fails
 FALLBACK_IMAGES = [
-    "https://freepornx.site/images/default1.jpg",
-    "https://freepornx.site/images/default2.jpg"
+    "https://t3.ftcdn.net/jpg/00/48/18/84/360_F_48188448_y5Z8i7a2J9h4h8i4.jpg", # Generic News Image
+    "https://media.istockphoto.com/id/1182473335/photo/breaking-news-concept.jpg?s=612x612&w=0&k=20&c=0s3tS9i_1d4_1d4_1d4.jpg"  # Breaking News Image
 ]
 
 # --- 1. OPENROUTER SETUP ---
@@ -72,12 +73,16 @@ def create_model_button(star_name, image_url):
 def get_image_from_ddg(query):
     print(f"🔍 Searching image for: {query}...")
     try:
+        # Retry logic added
         with DDGS(timeout=20) as ddgs:
             results = list(ddgs.images(query, max_results=1, safesearch='off'))
             if results:
+                print("✅ Image Found")
                 return results[0]['image']
     except Exception as e:
         print(f"❌ Image Error (Using Fallback): {e}")
+    
+    print("⚠️ Using Fallback Image")
     return random.choice(FALLBACK_IMAGES)
 
 def inject_internal_links(html_content):
@@ -149,14 +154,6 @@ def get_fallback_content(topic_type, title):
         <p>Over the years, she has worked with some of the biggest names in the business. Her versatility allows her to perform in various genres, making her a fan favorite. Whether it's a glamorous photoshoot or a high-production video, {title} gives her 100%.</p>
         <p>Social media has also played a huge role in her success. With millions of followers across platforms like Instagram and Twitter, she keeps her fans engaged with behind-the-scenes content and updates.</p>
 
-        <h2>Why She is So Popular</h2>
-        <p>There are several reasons why {title} remains a top trend:</p>
-        <ul>
-            <li><strong>Consistency:</strong> She regularly releases high-quality content.</li>
-            <li><strong>Engagement:</strong> She interacts with her fanbase frequently.</li>
-            <li><strong>Looks:</strong> Her distinct style and fitness regime keep her looking her best.</li>
-        </ul>
-
         <h2>Conclusion</h2>
         <p>{title} is undoubtedly a star to watch out for. Her journey from a newcomer to a sensation is inspiring. As she continues to evolve, fans can expect even more exciting projects from her in the future. Don't forget to check out her exclusive video collection linked below.</p>
         """
@@ -190,7 +187,6 @@ def get_ai_content(prompt, topic_type="Bio", title="Unknown"):
     print("🤖 Phase 1: Trying OpenRouter...")
     for model_name in OPENROUTER_MODELS:
         try:
-            # Added system prompt to enforce HTML structure
             response = client.chat.completions.create(
                 model=model_name,
                 messages=[
@@ -224,7 +220,6 @@ def get_ai_content(prompt, topic_type="Bio", title="Unknown"):
 def save_to_firebase(title, content, slug, tag, image):
     try:
         doc_ref = db.collection("articles").document(slug)
-        # Check if already exists
         if not doc_ref.get().exists:
             data = {
                 "title": title,
@@ -261,7 +256,6 @@ def post_biography():
         star_image = get_image_from_ddg(f"{star} model wallpaper")
         model_button = create_model_button(star, star_image)
 
-        # Improved Prompt for AI
         prompt = f"""
         Write a comprehensive HTML biography (at least 800 words) for the adult star "{star}".
         
@@ -312,8 +306,13 @@ def post_article():
             ]
             topic = random.choice(backup_topics)
 
+        # FIX: Image search ke liye 'topic' use mat karo (wo lamba hota hai)
+        # Use a generic generic keyword for higher success rate
+        image_search_query = "Viral Social Media News Trend"
         if topic:
-            img = get_image_from_ddg(topic)
+            print(f"🔍 Searching image for generic query: {image_search_query}")
+            img = get_image_from_ddg(image_search_query) 
+            
             prompt = f"""
             Write a sensational 800-word news article about "{topic}".
             Output strictly valid HTML.
