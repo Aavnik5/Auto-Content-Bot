@@ -104,7 +104,7 @@ def get_ai_content(prompt):
     try:
         # Google ka free model use kar rahe hain jo fast hai
         response = client.chat.completions.create(
-            model="google/gemma-2-9b-it:free",
+            model="google/gemini-2.0-flash-exp:free",
             messages=[{"role": "user", "content": prompt}]
         )
         return response.choices[0].message.content
@@ -194,3 +194,4 @@ if __name__ == "__main__":
     post_biography()
     time.sleep(2) # Thoda wait taki server crash na ho
     post_article()
+
