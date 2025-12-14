@@ -6,8 +6,6 @@ import re
 import firebase_admin
 from firebase_admin import credentials, firestore
 from openai import OpenAI
-import google.generativeai as genai
-from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import json
 from duckduckgo_search import DDGS
 import time
@@ -38,16 +36,6 @@ client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY"),
     base_url="https://openrouter.ai/api/v1",
 )
-
-# --- 2. GOOGLE GEMINI SETUP ---
-genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
-
-safety_settings = {
-    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-}
 
 # --- FIREBASE SETUP ---
 cred_dict = json.loads(os.environ.get("FIREBASE_CREDENTIALS"))
@@ -100,32 +88,46 @@ def inject_internal_links(html_content):
         modified_content = pattern.sub(replacement, modified_content)
     return modified_content
 
-def generate_with_gemini(prompt):
-    """Try ALL possible model names one by one until it works"""
-    # List of all possible model names to try
-    model_candidates = [
-        "gemini-1.5-flash",
-        "gemini-1.5-flash-latest",
-        "gemini-1.5-pro",
-        "gemini-1.0-pro",
-        "gemini-pro"
-    ]
-    
-    for model_name in model_candidates:
-        try:
-            print(f"   👉 Trying Gemini Model: {model_name}...")
-            model = genai.GenerativeModel(model_name=model_name, safety_settings=safety_settings)
-            response = model.generate_content(prompt)
-            if response.text:
-                print(f"   ✅ Success with {model_name}!")
-                return response.text
-        except Exception as e:
-            # Short error log
-            print(f"   ❌ {model_name} Failed: 404/Error")
-            continue
-            
-    print("❌ ALL Google Gemini Models Failed.")
-    return None
+def generate_gemini_rest(prompt, model_name="gemini-1.5-flash"):
+    """
+    Direct REST API Call to Google Servers.
+    Bypasses the buggy Python SDK.
+    """
+    api_key = os.environ.get("GOOGLE_API_KEY")
+    if not api_key:
+        print("❌ GOOGLE_API_KEY Missing!")
+        return None
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+    headers = {'Content-Type': 'application/json'}
+    data = {
+        "contents": [{
+            "parts": [{"text": prompt}]
+        }],
+        "safetySettings": [
+            {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+            {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+            {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+            {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"}
+        ]
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=data, timeout=30)
+        
+        if response.status_code == 200:
+            result = response.json()
+            try:
+                return result['candidates'][0]['content']['parts'][0]['text']
+            except (KeyError, IndexError):
+                print(f"⚠️ Unexpected JSON format from Google: {result}")
+                return None
+        else:
+            print(f"❌ Gemini REST Error {response.status_code}: {response.text}")
+            return None
+    except Exception as e:
+        print(f"❌ Request Failed: {e}")
+        return None
 
 def get_ai_content(prompt):
     # PLAN A: Try OpenRouter (Free Models)
@@ -143,15 +145,26 @@ def get_ai_content(prompt):
                 print("✅ OpenRouter Success!")
                 return content
         except Exception:
-            pass # Skip silently to save logs
+            pass # Silent fail to save time
     
-    # PLAN B: Google Gemini Direct (Loop through all models)
-    print("🚨 Phase 1 Failed. Switching to Phase 2: Google Gemini Direct...")
-    content = generate_with_gemini(prompt)
+    # PLAN B: Google Gemini REST API (The Nuclear Option)
+    print("🚨 Phase 1 Failed. Switching to Phase 2: Google Gemini REST API...")
     
+    # Try 1: Flash
+    print("   👉 Trying REST API: gemini-1.5-flash...")
+    content = generate_gemini_rest(prompt, "gemini-1.5-flash")
     if content:
+        print("✅ Gemini REST Success!")
         return content.replace("```html", "").replace("```", "")
 
+    # Try 2: Pro (Backup)
+    print("   👉 Trying REST API: gemini-pro...")
+    content = generate_gemini_rest(prompt, "gemini-pro")
+    if content:
+        print("✅ Gemini REST Success!")
+        return content.replace("```html", "").replace("```", "")
+        
+    print("❌ All Generation Methods Failed.")
     return None
 
 def save_to_firebase(title, content, slug, tag, image):
