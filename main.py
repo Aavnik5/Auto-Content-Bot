@@ -24,7 +24,7 @@ FALLBACK_IMAGES = [
     "https://freepornx.site/images/default2.jpg"
 ]
 
-# --- IMPROVED MODEL LIST ---
+# --- MODEL LIST ---
 FREE_MODELS = [
     "google/gemini-2.0-flash-exp:free",
     "google/gemini-pro-1.5:free",
@@ -96,7 +96,7 @@ def get_ai_content(prompt):
             response = client.chat.completions.create(
                 model=model_name,
                 messages=[{"role": "user", "content": prompt}],
-                timeout=40
+                timeout=50 # Increased timeout for long articles
             )
             content = response.choices[0].message.content
             if content:
@@ -114,9 +114,14 @@ def save_to_firebase(title, content, slug, tag, image):
         doc_ref = db.collection("articles").document(slug)
         if not doc_ref.get().exists:
             data = {
-                "title": title, "content": content, "slug": slug,
-                "createdAt": datetime.datetime.now(), "tags": [tag],
-                "views": random.randint(100, 1000), "thumbnail": image
+                "title": title,
+                "content": content,
+                "slug": slug,
+                "createdAt": datetime.datetime.now(),
+                "tags": [tag],
+                "views": random.randint(100, 1000),
+                "coverImageUrl": image,  # <--- FIXED: Ye naam 'coverImageUrl' hona chahiye
+                "thumbnail": image       # Backup ke liye thumbnail bhi rakh diya
             }
             doc_ref.set(data)
             print(f"🚀 Published: {title}")
@@ -137,14 +142,22 @@ def post_biography():
         star_image = get_image_from_ddg(f"{star} model wallpaper")
         model_button = create_model_button(star, star_image)
 
+        # UPDATED: Very Long Prompt
         prompt = f"""
-        Write a detailed HTML biography of adult star "{star}".
-        Structure:
-        - <h2>Introduction</h2>
-        - <table> with rows for: Age, Height, Nationality, Figure.
-        - <h2>Career & Early Life</h2>
-        - <h2>Why She is Famous</h2>
-        Output HTML ONLY. No <html> or <body> tags.
+        Write a VERY LONG, DETAILED, and SEO-optimized HTML biography (at least 1000 words) for the adult star "{star}".
+        
+        Use the following structure strictly (Output HTML ONLY, no <html>/<body> tags):
+        
+        1. <h2>Introduction</h2> (Write 2 long paragraphs about who she is, her popularity, and impact).
+        2. <table> (Include: Name, Date of Birth, Age, Birthplace, Height, Weight, Figure/Measurements, Nationality, Active Years).
+        3. <h2>Early Life & Background</h2> (Explain where she grew up, education, and life before the industry).
+        4. <h2>Career Journey</h2> (How she started, first scene, famous studios, awards, and career growth. Make this very detailed).
+        5. <h2>Personal Life & Relationships</h2> (Boyfriends, hobbies, interests outside work).
+        6. <h2>Social Media & Fan Following</h2> (Talk about her Instagram, Twitter/X presence).
+        7. <h2>Interesting Facts</h2> (Bullet points of 5-6 fun facts about her).
+        8. <h2>Conclusion</h2>
+        
+        Make sure the tone is engaging and professional. Use paragraphs, not just lists.
         """
         content = get_ai_content(prompt)
         
@@ -159,8 +172,6 @@ def post_biography():
 
 def post_article():
     try:
-        # AB HUM SITES.TXT USE NAHI KARENGE (BLOCK HOTA HAI)
-        # Hum direct Trending Topics dhundenge
         search_terms = ["leaked mms news", "viral desi video news", "bollywood oops moment news"]
         query = random.choice(search_terms)
         
@@ -168,7 +179,6 @@ def post_article():
         
         topic = None
         with DDGS() as ddgs:
-            # DuckDuckGo se text search karke topic nikalenge
             results = list(ddgs.text(query, max_results=1))
             if results:
                 topic = results[0]['title']
@@ -177,7 +187,17 @@ def post_article():
         if topic:
             img = get_image_from_ddg(topic)
             
-            prompt = f"Write a SEO friendly HTML blog post about '{topic}'. Mention words like Viral, Leaked, MMS. No <html> tags."
+            # UPDATED: Long Article Prompt
+            prompt = f"""
+            Write a detailed, 800-word SEO news article about "{topic}".
+            Focus on keywords: Viral Video, Leaked MMS, Desi Scandal, Social Media reaction.
+            Structure:
+            - <h2>Breaking News</h2> (What happened?)
+            - <h2>Why it went Viral?</h2>
+            - <h2>Public Reaction</h2>
+            - <h2>Safety Tips</h2>
+            Output valid HTML only.
+            """
             content = get_ai_content(prompt)
             
             if content:
