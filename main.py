@@ -3,7 +3,6 @@ import random
 import datetime
 import requests
 import re
-from bs4 import BeautifulSoup
 import firebase_admin
 from firebase_admin import credentials, firestore
 from openai import OpenAI
@@ -25,14 +24,13 @@ FALLBACK_IMAGES = [
     "https://freepornx.site/images/default2.jpg"
 ]
 
-# --- IMPROVED MODEL LIST (Mix of Providers) ---
+# --- IMPROVED MODEL LIST ---
 FREE_MODELS = [
-    "google/gemini-2.0-flash-exp:free",           # Best Quality
-    "google/gemini-pro-1.5:free",                 # Google Backup
-    "meta-llama/llama-3.2-3b-instruct:free",      # Fast & Reliable
-    "qwen/qwen-2-7b-instruct:free",               # Very Stable
-    "deepseek/deepseek-r1-distill-llama-70b:free",# High Quality
-    "microsoft/phi-3-mini-128k-instruct:free"     # Good Backup
+    "google/gemini-2.0-flash-exp:free",
+    "google/gemini-pro-1.5:free",
+    "meta-llama/llama-3.2-3b-instruct:free",
+    "qwen/qwen-2-7b-instruct:free",
+    "microsoft/phi-3-mini-128k-instruct:free"
 ]
 
 # --- SETUP ---
@@ -72,15 +70,13 @@ def create_model_button(star_name, image_url):
     """
     return html_code
 
-def get_star_image(star_name):
-    print(f"🔍 Searching image for: {star_name}...")
+def get_image_from_ddg(query):
+    print(f"🔍 Searching image for: {query}...")
     try:
         with DDGS() as ddgs:
-            queries = [f"{star_name} model photoshoot hd", f"{star_name} wallpaper", f"{star_name} instagram"]
-            for q in queries:
-                results = list(ddgs.images(q, max_results=1, safesearch='off'))
-                if results:
-                    return results[0]['image']
+            results = list(ddgs.images(query, max_results=1, safesearch='off'))
+            if results:
+                return results[0]['image']
     except Exception as e:
         print(f"❌ Image Error: {e}")
     return random.choice(FALLBACK_IMAGES)
@@ -93,31 +89,21 @@ def inject_internal_links(html_content):
         modified_content = pattern.sub(replacement, modified_content)
     return modified_content
 
-def get_page_image(soup):
-    try:
-        img = soup.find("meta", property="og:image")
-        if img and img.get("content"): return img["content"]
-        img_tag = soup.find("img")
-        if img_tag and img_tag.get("src"): return img_tag["src"]
-    except: pass
-    return random.choice(FALLBACK_IMAGES)
-
 def get_ai_content(prompt):
-    # Loop through ALL free models until one works
     for model_name in FREE_MODELS:
         try:
             print(f"🤖 Trying AI Model: {model_name}...")
             response = client.chat.completions.create(
                 model=model_name,
                 messages=[{"role": "user", "content": prompt}],
-                timeout=30 # 30 sec timeout taki hang na ho
+                timeout=40
             )
             content = response.choices[0].message.content
             if content:
                 return content
         except Exception as e:
             print(f"⚠️ {model_name} Failed. Trying next...")
-            time.sleep(2) # Thoda saas lene do bot ko
+            time.sleep(2)
             continue 
             
     print("❌ All AI Models failed.")
@@ -148,7 +134,7 @@ def post_biography():
         star = random.choice(stars)
         print(f"⭐ Processing Bio: {star}")
         
-        star_image = get_star_image(star)
+        star_image = get_image_from_ddg(f"{star} model wallpaper")
         model_button = create_model_button(star, star_image)
 
         prompt = f"""
@@ -173,32 +159,36 @@ def post_biography():
 
 def post_article():
     try:
-        with open("sites.txt", "r") as f: sites = [s.strip() for s in f.readlines() if s.strip()]
-        if not sites: return
+        # AB HUM SITES.TXT USE NAHI KARENGE (BLOCK HOTA HAI)
+        # Hum direct Trending Topics dhundenge
+        search_terms = ["leaked mms news", "viral desi video news", "bollywood oops moment news"]
+        query = random.choice(search_terms)
+        
+        print(f"🔍 Searching Trending Topic for: {query}...")
+        
+        topic = None
+        with DDGS() as ddgs:
+            # DuckDuckGo se text search karke topic nikalenge
+            results = list(ddgs.text(query, max_results=1))
+            if results:
+                topic = results[0]['title']
+                print(f"🔥 Found Trending Topic: {topic}")
 
-        url = random.choice(sites)
-        r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
-        soup = BeautifulSoup(r.content, 'html.parser')
-        
-        img = get_page_image(soup)
-        topics = [h.text.strip() for h in soup.find_all(['h1', 'h2']) if len(h.text.strip()) > 15]
-        
-        if topics:
-            topic = random.choice(topics)
-            print(f"📝 Writing Article: {topic}")
+        if topic:
+            img = get_image_from_ddg(topic)
             
-            prompt = f"Write a SEO friendly HTML blog post about '{topic}'. Use tags like Viral, MMS, Leaked. No <html> tags."
+            prompt = f"Write a SEO friendly HTML blog post about '{topic}'. Mention words like Viral, Leaked, MMS. No <html> tags."
             content = get_ai_content(prompt)
             
             if content:
                 content = inject_internal_links(content)
-                slug = topic.lower().replace(" ", "-")[:60]
+                slug = topic.lower().replace(" ", "-").replace(":", "")[:60]
                 save_to_firebase(topic, content, slug, "News", img)
     except Exception as e:
         print(f"Article Error: {e}")
 
 if __name__ == "__main__":
     post_biography()
-    print("⏳ Waiting 10 seconds to avoid Rate Limit...")
-    time.sleep(10) # 10 second ka break taki Google gussa na ho
+    print("⏳ Waiting 10 seconds...")
+    time.sleep(10)
     post_article()
