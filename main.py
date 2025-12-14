@@ -21,22 +21,9 @@ KEYWORD_LINKS = {
     "Scandal": "/tags/scandal"
 }
 
-# --- TARGET WEBSITES (Source for News) ---
-TARGET_SITES = [
-    "avn.com",
-    "pornstars.tube",
-    "redbled.com",
-    "thelordofporn.com",
-    "erotom.com",
-    "frolicme.com",
-    "eroticatale.com",
-    "sexwithemily.com",
-    "erikalust.com"
-]
-
 # --- GUARANTEED WORKING IMAGES ---
 BIO_IMAGES_LIST = [
-        "https://ih1.redbubble.net/image.5328373552.3326/st,small,507x507-pad,600x600,f8f8f8.u3.webp",
+     "https://ih1.redbubble.net/image.5328373552.3326/st,small,507x507-pad,600x600,f8f8f8.u3.webp",
 
 ]
 
@@ -139,7 +126,8 @@ def get_fallback_content(topic_type, title):
     if topic_type == "Bio":
         return f"""
         <h2>Introduction to the Star</h2>
-        <p>{title} has taken the internet by storm. Known for her captivating performances and stunning looks, she has carved a niche for herself in the adult entertainment industry. From her early beginnings to becoming a top-searched star, her journey is nothing short of fascinating. Fans around the world are always eager to know more about her life, career, and personal details.</p>
+        <p>{title} has taken the internet by storm. Known for her captivating performances and stunning looks, she has carved a niche for herself in the adult entertainment industry. From her early beginnings to becoming a top-searched star, her journey is nothing short of fascinating. Fans around the world are always eager to know more about her life, career, and personal details. Her presence on social media has further amplified her reach, making her a global sensation in a very short span of time.</p>
+        <p>In this detailed biography, we will explore everything you need to know about {title}, including her age, height, figure, family background, and net worth.</p>
         
         <h2>Personal Details</h2>
         <table style="width:100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #333;">
@@ -148,38 +136,60 @@ def get_fallback_content(topic_type, title):
                 <th style="padding: 10px; border: 1px solid #444;">Details</th>
             </tr>
             <tr><td style="padding:10px; border:1px solid #444;"><strong>Name</strong></td><td style="padding:10px; border:1px solid #444;">{title}</td></tr>
-            <tr><td style="padding:10px; border:1px solid #444;"><strong>Real Name</strong></td><td style="padding:10px; border:1px solid #444;">Not Publicly Available</td></tr>
             <tr><td style="padding:10px; border:1px solid #444;"><strong>Profession</strong></td><td style="padding:10px; border:1px solid #444;">Adult Actress, Model</td></tr>
             <tr><td style="padding:10px; border:1px solid #444;"><strong>Date of Birth</strong></td><td style="padding:10px; border:1px solid #444;">1990s (Approx)</td></tr>
             <tr><td style="padding:10px; border:1px solid #444;"><strong>Birth Place</strong></td><td style="padding:10px; border:1px solid #444;">United States / Europe</td></tr>
             <tr><td style="padding:10px; border:1px solid #444;"><strong>Nationality</strong></td><td style="padding:10px; border:1px solid #444;">International</td></tr>
-            <tr><td style="padding:10px; border:1px solid #444;"><strong>Movies</strong></td><td style="padding:10px; border:1px solid #444;">Various Web Scenes</td></tr>
+            <tr><td style="padding:10px; border:1px solid #444;"><strong>Debut Year</strong></td><td style="padding:10px; border:1px solid #444;">2015-2020</td></tr>
+        </table>
+
+        <h3>Physical Appearance</h3>
+        <table style="width:100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #333;">
+            <tr><td style="padding:10px; border:1px solid #444;"><strong>Height</strong></td><td style="padding:10px; border:1px solid #444;">5 ft 5 in (Approx)</td></tr>
+            <tr><td style="padding:10px; border:1px solid #444;"><strong>Weight</strong></td><td style="padding:10px; border:1px solid #444;">55 kg</td></tr>
+            <tr><td style="padding:10px; border:1px solid #444;"><strong>Body Measurements</strong></td><td style="padding:10px; border:1px solid #444;">34-24-36</td></tr>
+            <tr><td style="padding:10px; border:1px solid #444;"><strong>Bra Size</strong></td><td style="padding:10px; border:1px solid #444;">34C</td></tr>
+            <tr><td style="padding:10px; border:1px solid #444;"><strong>Waist Size</strong></td><td style="padding:10px; border:1px solid #444;">24 inches</td></tr>
+            <tr><td style="padding:10px; border:1px solid #444;"><strong>Hip Size</strong></td><td style="padding:10px; border:1px solid #444;">36 inches</td></tr>
+            <tr><td style="padding:10px; border:1px solid #444;"><strong>Shoe Size</strong></td><td style="padding:10px; border:1px solid #444;">7 (US)</td></tr>
+            <tr><td style="padding:10px; border:1px solid #444;"><strong>Dress Size</strong></td><td style="padding:10px; border:1px solid #444;">4 (US)</td></tr>
+            <tr><td style="padding:10px; border:1px solid #444;"><strong>Hair Color</strong></td><td style="padding:10px; border:1px solid #444;">Brown/Black</td></tr>
+            <tr><td style="padding:10px; border:1px solid #444;"><strong>Eye Color</strong></td><td style="padding:10px; border:1px solid #444;">Brown</td></tr>
         </table>
 
         <h2>Early Life & Background</h2>
-        <p>{title} was born with a passion for the camera. While specific details about her early childhood are kept private, it is known that she always aspired to be in the limelight. Growing up, she was active in various extracurricular activities which helped build her confidence.</p>
-        <p>She entered the industry at a young age and quickly learned the ropes. Her dedication and hard work made her stand out from the crowd.</p>
+        <p>{title} was born with a passion for the camera. While specific details about her early childhood are kept private to maintain her privacy, it is known that she always aspired to be in the limelight. Growing up, she was active in various extracurricular activities which helped build her confidence.</p>
 
         <h2>Career Journey</h2>
-        <p>The rise of {title} in the industry has been meteoric. Her debut scene grabbed attention immediately, showcasing her natural talent and screen presence. Directors and producers were quick to notice her potential, leading to contracts with major studios.</p>
-        <p>She has worked with some of the most prestigious production houses in the industry. Her ability to adapt to different roles and genres sets her apart.</p>
+        <p>The rise of {title} in the industry has been meteoric. Her debut scene grabbed attention immediately, showcasing her natural talent and screen presence. Directors and producers were quick to notice her potential, leading to contracts with major studios. Unlike many others who struggle to find their footing, she made an impact right from the start.</p>
 
         <h2>Conclusion</h2>
-        <p>{title} is undoubtedly a star to watch out for. Her journey from a newcomer to a sensation is inspiring for many. Don't forget to check out her exclusive video collection linked below.</p>
+        <p>{title} is undoubtedly a star to watch out for. Her journey from a newcomer to a sensation is inspiring for many. As she continues to evolve, fans can expect even more exciting projects from her in the future. She has proven that with talent and hard work, one can achieve great heights in this competitive industry.</p>
+        <p>Don't forget to check out her exclusive video collection linked below to see her best performances.</p>
         """
     else: # News Fallback
         return f"""
-        <h2>Breaking News: {title}</h2>
-        <p>The internet is buzzing today with the latest viral sensation involving <strong>{title}</strong>. Private videos often leak on platforms like Telegram, Reddit, and Twitter, causing a massive storm on social media.</p>
+        <h2>Breaking News: The Viral Scandal of {title}</h2>
+        <p>The internet is buzzing today with the latest viral sensation involving <strong>{title}</strong>. Private videos often leak on platforms like Telegram, Reddit, and Twitter, causing a massive storm on social media. This recent incident has once again highlighted the issues of digital privacy and internet security.</p>
         
-        <h2>The Viral Clip: What Happened?</h2>
-        <p>It all started when a video clip surfaced online. Within hours, the clip was shared thousands of times. The nature of the content has sparked intense debate, with many users searching for the original link.</p>
+        <h2>The Viral Clip: What Exactly Happened?</h2>
+        <p>It all started when a video clip surfaced online late last night. Within hours, the clip was shared thousands of times across various social media groups and channels. The nature of the content has sparked intense debate, with many users searching for the original link. While some claim it to be a deepfake or a publicity stunt, others believe it to be a genuine leak from a private source.</p>
+        <p>The video features {title} in a candid moment, which was allegedly not meant for public viewing. Such leaks have become increasingly common in the digital age, where hackers and malicious entities target influencers and celebrities.</p>
+
+        <h2>Public Reactions and Social Media Storm</h2>
+        <p>As soon as the news broke, reactions started pouring in from all corners of the internet. Here is how the public is reacting:</p>
+        <ul>
+            <li><strong>Fans:</strong> Many loyal fans are shocked and are supporting {title}, asking for privacy and respect during this difficult time.</li>
+            <li><strong>Trolls:</strong> Unfortunately, internet trolls are having a field day, sharing memes and making inappropriate comments.</li>
+            <li><strong>Search Trends:</strong> The keyword "{title} leaked video" has become a top search query on Google and Twitter trends.</li>
+        </ul>
 
         <h2>Analysis: The Dark Side of the Web</h2>
-        <p>This incident sheds light on the dark side of the internet. Private content, once leaked, is almost impossible to remove completely.</p>
+        <p>This incident sheds light on the dark side of the internet. Private content, once leaked, is almost impossible to remove completely. Platforms like Telegram play a major role in the dissemination of such content, often bypassing strict moderation rules found on other social networks. It serves as a reminder for everyone to be extra cautious about their digital footprint.</p>
 
         <h2>Conclusion</h2>
-        <p>As the story develops, more details are expected to emerge. Stay tuned to our website for the latest updates.</p>
+        <p>As the story develops, more details are expected to emerge regarding the source of the leak and any legal action that might be taken. We urge our readers to respect the privacy of the individuals involved and avoid sharing unverified or non-consensual content.</p>
+        <p>Stay tuned to our website for the latest updates on this viral scandal and other trending news.</p>
         """
 
 def get_ai_content(prompt, topic_type="Bio", title="Unknown"):
@@ -189,7 +199,7 @@ def get_ai_content(prompt, topic_type="Bio", title="Unknown"):
             response = client.chat.completions.create(
                 model=model_name,
                 messages=[
-                    {"role": "system", "content": "You are a professional adult industry writer. Write 2000-WORD detailed content. Use <h2> headings and <table> for stats."},
+                    {"role": "system", "content": "You are a professional long-form content writer. Write EXTREMELY DETAILED, 2000-WORD content. Do not stop early. Use <h2> headings and <table> for stats."},
                     {"role": "user", "content": prompt}
                 ],
                 timeout=45
@@ -253,20 +263,54 @@ def post_biography():
         star_image = get_guaranteed_image(f"{star} model wallpaper", type="Bio")
         model_button = create_model_button(star, star_image)
 
-        # 2000 WORDS PROMPT - UPDATED TABLE INSTRUCTIONS
+        # 2000 WORDS PROMPT with PHYSICAL STATS REQUEST
         prompt = f"""
         Write a massive, 2000-WORD detailed HTML biography for the adult star "{star}".
         
+        INSTRUCTIONS FOR LENGTH:
+        - Elaborate deeply on her early life, education, and life before fame (Write 500 words just on this).
+        - Create a very long 'Career' section detailing her debut, major movies, and rise to stardom (Write 800 words on this).
+        - Discuss her social media impact, brand endorsements, and controversies (Write 500 words).
+        
         REQUIRED HTML STRUCTURE:
         1. <h2>Introduction</h2>
-        2. <h2>Personal Details</h2>: A DETAILED HTML Table <table> with rows: 
-           - Real Name, Profession, Date of Birth, Birth Place, Nationality, 
-           - Religion, Height, Languages, Debut Year, Popular Movies/TV Shows. 
-           (Style with border="1")
-        3. <h2>Early Life</h2> (Write 500 words)
-        4. <h2>Career Journey</h2> (Write 800 words)
-        5. <h2>Social Media & Fame</h2>
-        6. <h2>Conclusion</h2>
+        2. <h2>Personal Details</h2>: A DETAILED HTML Table <table> with the following rows:
+           - Real Name (Profession Name)
+           - Profession (e.g., Pornographic Actress, Model)
+           - Date of Birth & Age (as of 2024)
+           - Birth Place
+           - Grew Up In
+           - Gender
+           - Birth Sign (Zodiac)
+           - Nationality
+           - Religion
+           - Ethnicity
+           - Current City
+           - Languages Spoken
+           - Debut Year
+           - Years Active
+           - Notable Movies (List 3-4)
+           - TV Shows (List if any)
+        
+        3. <h2>Physical Appearance</h2>: A SECOND HTML Table <table> with the following rows:
+           - Height (Feet and Meters)
+           - Weight (lbs and kg)
+           - Bra Size
+           - Body Measurements (Chest-Waist-Hips)
+           - Breast/Bust Size
+           - Waist Size
+           - Hips Size
+           - Shoe Size
+           - Dress Size
+           - Hair Color
+           - Eye Color
+        
+        (Style both tables with border="1")
+           
+        4. <h2>Early Life</h2>
+        5. <h2>Career Journey</h2>
+        6. <h2>Social Media & Fame</h2>
+        7. <h2>Conclusion</h2>
         
         Output raw HTML only.
         """
@@ -276,19 +320,29 @@ def post_biography():
             content = inject_internal_links(content)
             final_content = content + model_button
             slug = f"{star.lower().replace(' ', '-')}-biography"
-            save_to_firebase(f"{star}: Porn Star Biography & Videos", final_content, slug, "Bio", star_image)
+            save_to_firebase(f"{star}: Porn Star Biography & Video", final_content, slug, "Bio", star_image)
     except Exception as e:
         print(f"Bio Error: {e}")
 
 def post_article():
     try:
-        # 1. Pick a random site from your list
-        source_site = random.choice(TARGET_SITES)
+        # UPDATED SEARCH TERMS to include specific sites
+        search_terms = [
+            "site:avn.com latest news",
+            "site:pornstars.tube trending",
+            "site:redbled.com viral",
+            "site:thelordofporn.com top 10",
+            "site:erotom.com latest",
+            "site:frolicme.com blog",
+            "site:eroticatale.com stories",
+            "site:sexwithemily.com blog",
+            "site:erikalust.com news",
+            "latest viral leaked mms news",
+            "private video leaked scandal"
+        ]
+        query = random.choice(search_terms)
         
-        # 2. Search specific site for trends
-        query = f"site:{source_site} latest news"
-        print(f"🔍 Searching Trending Topic from: {source_site}...")
-        
+        print(f"🔍 Searching Trending Topic for: {query}...")
         topic = None
         
         try:
@@ -304,8 +358,7 @@ def post_article():
             print("⚠️ Using Backup Topic.")
             backup_topics = [
                 "Viral Scandal: Telegram Groups Leaking Private Videos",
-                "Dark Side of Social Media: Influencer MMS Leaked",
-                "New Viral Trend: Private Videos Leaking on Twitter"
+                "Dark Side of Social Media: Influencer MMS Leaked"
             ]
             topic = random.choice(backup_topics)
 
@@ -314,18 +367,18 @@ def post_article():
         # 2000 WORDS PROMPT FOR NEWS
         prompt = f"""
         Write an investigative, deep-dive 2000-WORD news article about "{topic}".
-        Source inspiration: {source_site}
         
-        INSTRUCTIONS:
+        INSTRUCTIONS FOR LENGTH:
         - Analyze the incident in extreme detail (Who, What, Where).
-        - Discuss digital privacy and internet security.
-        - Include 'Expert Opinions' and 'Social Media Reactions'.
+        - Discuss the broader issue of digital privacy and internet security.
+        - Include fictional 'Expert Opinions' and 'Cyber Security Analysis'.
+        - Describe social media reactions in depth.
         
         STRUCTURE:
         - <h2>Breaking Story</h2>
         - <h2>The Viral Event in Detail</h2>
         - <h2>Public Outrage & Reactions</h2>
-        - <h2>Analysis</h2>
+        - <h2>Cyber Security Expert Analysis</h2>
         - <h2>Conclusion</h2>
         
         Output strictly valid HTML.
