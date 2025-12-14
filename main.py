@@ -318,16 +318,52 @@ def post_biography():
 
 def post_article():
     try:
-        search_terms = [
+      search_terms = [
             # OnlyFans & Private Leaks
-            "onlyfans model private video leaked twitter 2025",
+            "onlyfans model private video leaked twitter",
             "top onlyfans creator mega leak viral",
-            "famous adult star private tape scandal analysis",
-            "twitch streamer accidental nudity clip viral debate",
-            "instagram model private mms leaked telegram groups",
-            "celebrity sex tape leak 2025 investigation",
-            "top 10 hottest pornstars 2025 ranked deep dive",
-            "viral onlyfans sex tapes reddit trend analysis",
+            "famous adult star private tape scandal",
+            "western influencer sex tape leaked reddit",
+            
+            # Streaming & Social Media Scandals
+            "twitch streamer accidental nudity clip viral",
+            "instagram model private mms leaked telegram",
+            "youtuber private video exposed twitter",
+            "streamer wardrobe malfunction viral clip",
+            
+            # Porn Industry Specific
+            "porn star real life controversy news",
+            "adult actress hacked private photos scandal",
+            "famous pornstar retirement scandal news",
+            "avn award winner leaked private video",
+            
+            # General Viral Terms (Western Context)
+            "celebrity sex tape leak 2025",
+            "hollywood actress deepfake controversy news",
+            "leaked snapchat premium video viral"
+            # Top 10 & Best of 2025 Lists
+            "top 10 hottest pornstars 2025 ranked",
+            "best adult actresses of 2025 list",
+            "top 10 most popular adult stars 2025",
+            "best new pornstars debut 2025",
+            
+            # Movies & Award Winners
+            "best adult movies 2025 reviews",
+            "AVN award winners 2025 full list",
+            "XBIZ award winning scenes 2025",
+            "top rated adult films 2025",
+            
+            # OnlyFans & Leaks (Viral)
+            "best onlyfans creators leaked videos viral",
+            "top trending onlyfans leaks 2025",
+            "most subscribed onlyfans models leaked",
+            "viral onlyfans sex tapes reddit trend",
+            
+            # Viral & Trending Videos
+            "most viewed porn videos 2025",
+            "viral adult scenes trending twitter",
+            "leaked private tapes of famous stars 2025",
+            "top 5 controversial adult scandals 2025"
         ]
         query = random.choice(search_terms)
         
@@ -388,3 +424,4 @@ if __name__ == "__main__":
     post_biography()
     time.sleep(5)
     post_article()
+
