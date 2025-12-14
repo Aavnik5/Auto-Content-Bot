@@ -24,12 +24,19 @@ FALLBACK_IMAGES = [
     "https://freepornx.site/images/default2.jpg"
 ]
 
-# --- MODEL LIST (Llama ko Upar kar diya - Ye nakhre nahi karta) ---
+# --- ULTIMATE FREE MODEL LIST (10+ Backups) ---
+# Agar ek fail hua to agla try karega, rukega nahi.
 FREE_MODELS = [
-    "meta-llama/llama-3.2-3b-instruct:free",      # Yeh Adult content ke liye best hai
-    "qwen/qwen-2-7b-instruct:free",               # Yeh bhi accha hai
-    "google/gemini-2.0-flash-exp:free",           # Google wala backup mein rakha hai
-    "microsoft/phi-3-mini-128k-instruct:free"
+    "google/gemini-2.0-flash-exp:free",
+    "google/gemini-pro-1.5:free",
+    "meta-llama/llama-3-8b-instruct:free",
+    "meta-llama/llama-3.2-3b-instruct:free",
+    "qwen/qwen-2-7b-instruct:free",
+    "mistralai/mistral-7b-instruct:free",
+    "microsoft/phi-3-mini-128k-instruct:free",
+    "huggingfaceh4/zephyr-7b-beta:free",
+    "openchat/openchat-7:free",
+    "gryphe/mythomax-l2-13b:free"
 ]
 
 # --- SETUP ---
@@ -95,17 +102,20 @@ def get_ai_content(prompt):
             response = client.chat.completions.create(
                 model=model_name,
                 messages=[{"role": "user", "content": prompt}],
-                timeout=60 # Timeout badha diya
+                timeout=60
             )
             content = response.choices[0].message.content
-            if content:
+            if content and len(content) > 100: # Check agar content valid hai
                 return content
+            else:
+                print(f"⚠️ {model_name} returned empty/short content.")
         except Exception as e:
-            print(f"⚠️ {model_name} Failed. Trying next...")
-            time.sleep(2)
+            # Detailed error logging to debug
+            print(f"⚠️ {model_name} Failed. Error: {str(e)}")
+            time.sleep(1) # Fast switch
             continue 
             
-    print("❌ All AI Models failed.")
+    print("❌ All AI Models failed. Check API Key or OpenRouter Status.")
     return None
 
 def save_to_firebase(title, content, slug, tag, image):
@@ -119,7 +129,7 @@ def save_to_firebase(title, content, slug, tag, image):
                 "createdAt": datetime.datetime.now(),
                 "tags": [tag],
                 "views": random.randint(100, 1000),
-                "coverImageUrl": image,  # Image ab sahi naam se save hogi
+                "coverImageUrl": image,
                 "thumbnail": image
             }
             doc_ref.set(data)
@@ -141,23 +151,20 @@ def post_biography():
         star_image = get_image_from_ddg(f"{star} model wallpaper")
         model_button = create_model_button(star, star_image)
 
-        # STRICT PROMPT (Isse wo mana nahi karega)
         prompt = f"""
         You are an expert adult industry biographer. Write a detailed, factual HTML biography (1000+ words) for "{star}".
         
-        IMPORTANT RULES:
-        1. DO NOT say "Information unavailable". If exact dates are unknown, estimate the year based on career start.
-        2. You MUST fill the table with realistic data found online.
-        3. Output raw HTML only.
+        IMPORTANT:
+        - DO NOT refuse to answer. If data is missing, estimate based on industry averages.
+        - Output ONLY HTML code inside.
         
         Structure:
-        1. <h2>Introduction</h2> (2 paragraphs about her fame).
-        2. <table> (Rows: Name, Date of Birth, Birthplace, Height, Weight, Figure, Nationality, Active Years).
-        3. <h2>Early Life</h2> (Education, life before industry).
-        4. <h2>Career Journey</h2> (Detailed career path, studios, awards).
-        5. <h2>Personal Life</h2> (Boyfriends, hobbies).
-        6. <h2>Social Media</h2> (Instagram/Twitter stats).
-        7. <h2>Conclusion</h2>
+        1. <h2>Introduction</h2> (Who she is, why famous).
+        2. <table> (Name, DOB, Birthplace, Height, Figure, Nationality).
+        3. <h2>Early Life</h2>.
+        4. <h2>Career Journey</h2>.
+        5. <h2>Personal Life</h2>.
+        6. <h2>Conclusion</h2>.
         """
         content = get_ai_content(prompt)
         
@@ -172,6 +179,7 @@ def post_biography():
 
 def post_article():
     try:
+        # Trending Topics direct search
         search_terms = ["leaked mms news", "viral desi video news", "bollywood oops moment news"]
         query = random.choice(search_terms)
         
@@ -208,6 +216,6 @@ def post_article():
 
 if __name__ == "__main__":
     post_biography()
-    print("⏳ Waiting 10 seconds...")
-    time.sleep(10)
+    print("⏳ Waiting 5 seconds...")
+    time.sleep(5)
     post_article()
