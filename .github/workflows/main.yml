@@ -2,8 +2,9 @@ name: Daily Auto Poster
 
 on:
   schedule:
-    - cron: '0 5 * * *' # Subah 5 baje chalega
-  workflow_dispatch:    # Manually run karne ke liye button
+    # 👈 CHANGE YAHAN HAI: Har ghante ke 0th minute par chalega.
+    - cron: '0 * * * *' 
+  workflow_dispatch:  # Manually run karne ke liye button
 
 jobs:
   build:
